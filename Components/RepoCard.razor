@@ -19,7 +19,8 @@
     }
 }
 
-<MudCard Class="pa-4 ma-2">
+
+<MudCard Class="ma-2" Style="height:340px;display:flex;flex-direction:column;" Elevation="4" Square="false">
 
     <MudCardHeader>
 
@@ -29,26 +30,32 @@
 
     </MudCardHeader>
 
-    <MudCardContent>
 
-        <MudText>
-            @Repo.Description
-        </MudText>
-        <MudDivider Class="my-2" />
-        <div class="d-flex" style="gap: 8px;">
-            <MudChip T="string">⭐ @Repo.Stargazers_Count</MudChip>
-            <MudChip T="string">🍴 @Repo.Forks_Count</MudChip>
+    <MudCardContent Style="flex:1 1 auto;display:flex;flex-direction:column;">
+        <div style="height:100px;overflow:auto;">
+            <MudText>@Repo.Description</MudText>
         </div>
+        <MudDivider Class="my-2" />
+        <MudStack Direction="Row" Spacing="1">
+            <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Star">
+                Stars: @Repo.Stargazers_Count
+            </MudChip>
+            <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.CallSplit">
+                Forks: @Repo.Forks_Count
+            </MudChip>
+        </MudStack>
     </MudCardContent>
 
     <MudCardActions>
-        <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => ShowReadMe())">ReadMe</MudButton>
-        @if (IsLoggedIn)
-        {
-            <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => OnShowTraffic.InvokeAsync(Repo))">Traffic</MudButton>
-        }
-        <MudSpacer />
-        <MudButton Variant="Variant.Text" Href="@Repo.Html_Url" Target="_blank">GitHub</MudButton>
+        <div class="d-flex justify-content-between align-items-center w-100 mb-2" style="gap:8px;">
+            <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="ShowReadMe" StartIcon="@Icons.Material.Filled.Description">ReadMe</MudButton>
+            @if (IsLoggedIn)
+            {
+                <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => OnShowTraffic.InvokeAsync(Repo))" StartIcon="@Icons.Material.Filled.Traffic">Traffic</MudButton>
+            }
+            <MudSpacer />
+            <MudButton Variant="Variant.Text" Href="@Repo.Html_Url" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">GitHub</MudButton>
+        </div>
     </MudCardActions>
 
 </MudCard>

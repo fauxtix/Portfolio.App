@@ -6,10 +6,9 @@
 @using MudBlazor
 
 @inject IDialogService DialogService
-
 @inject GitHubApiService GitHub
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-@inject IDialogService DialogService
+@inject IConfiguration Configuration
 
 
 <MudContainer MaxWidth="MaxWidth.Large">
@@ -30,7 +29,7 @@
         @foreach (var repo in _repos)
         {
             <MudItem xs="12" md="6" lg="4">
-                <RepoCard Repo="repo" IsLoggedIn="_isLoggedIn" OnShowTraffic="ShowTrafficDialog" Username="_username" Pat="_pat" />
+                <RepoCard Repo="repo" IsLoggedIn="_isLoggedIn" OnShowTraffic="ShowTrafficDialog" Username="@_username" Pat="@_pat" />
             </MudItem>
         }
     </MudGrid>
@@ -38,7 +37,7 @@
 </MudContainer>
 
 @code {
-    private string _username = "";
+    private string _username = string.Empty;
     private List<GitHubRepo> _repos = [];
     [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
     private bool _isLoggedIn => AppState.IsLoggedIn;
@@ -50,8 +49,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Only set the default username if there is no stored or user-entered value
         var stored = await LocalStorage.GetItemAsStringAsync("github_username");
-        _username = string.IsNullOrWhiteSpace(stored) ? "fauxtix" : stored;
+        if (string.IsNullOrWhiteSpace(_username))
+        {
+            if (!string.IsNullOrWhiteSpace(stored))
+                _username = stored;
+            else
+                _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+        }
         await LoadRepos();
         AppState.OnChange += OnAppStateChanged;
     }

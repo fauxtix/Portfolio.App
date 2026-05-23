@@ -21,6 +21,8 @@ builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddSingleton<AppState>();
 builder.Services.AddScoped<CacheService>();
+builder.Services.AddScoped<CacheConfigService>();
+builder.Services.AddScoped<BrowserCacheService>();
 
 builder.Services.AddScoped<GitHubApiService>();
 

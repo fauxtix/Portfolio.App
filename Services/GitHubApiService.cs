@@ -9,13 +9,16 @@ public class GitHubApiService
 {
     private readonly HttpClient _http;
     private readonly CacheService _cache;
+    private readonly BrowserCacheService _browserCache;
 
     public GitHubApiService(
         HttpClient http,
-        CacheService cache)
+        CacheService cache,
+        BrowserCacheService browserCache)
     {
         _http = http;
         _cache = cache;
+        _browserCache = browserCache;
 
         _http.DefaultRequestHeaders.UserAgent.ParseAdd(
             "PortfolioApp");
@@ -24,22 +27,21 @@ public class GitHubApiService
     public async Task<List<GitHubRepo>> GetReposAsync(string username, string? pat = null)
     {
         var cacheKey = $"repos_{username}";
+        return await _browserCache.GetOrFetchAsync<List<GitHubRepo>>(cacheKey, () => FetchReposWithTrafficAsync(username, pat));
+    }
 
-        var cached = await _cache.GetAsync<List<GitHubRepo>>(cacheKey);
-        if (cached != null)
-            return cached;
-
+    private async Task<List<GitHubRepo>> FetchReposWithTrafficAsync(string username, string? pat)
+    {
         var request = new HttpRequestMessage(HttpMethod.Get, $"users/{username}/repos?sort=updated&per_page=20");
         if (!string.IsNullOrWhiteSpace(pat))
-        {
             request.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
-        }
+
         var response = await _http.SendAsync(request);
         if (!response.IsSuccessStatusCode)
-            return [];
-        var repos = await response.Content.ReadFromJsonAsync<List<GitHubRepo>>() ?? [];
+            return new List<GitHubRepo>();
 
-        // If PAT is present, fetch traffic data for each repo
+        var repos = await response.Content.ReadFromJsonAsync<List<GitHubRepo>>() ?? new List<GitHubRepo>();
+
         if (!string.IsNullOrWhiteSpace(pat))
         {
             foreach (var repo in repos)
@@ -70,88 +72,88 @@ public class GitHubApiService
                 catch { repo.Clones = 0; }
             }
         }
-
-        await _cache.SetAsync(cacheKey, repos, TimeSpan.FromHours(6));
         return repos;
     }
 
-public async Task<string> GetRepoReadmeAsync(string owner, string repo, string? pat = null)
-{
-    var req = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/readme");
-    if (!string.IsNullOrWhiteSpace(pat))
-        req.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
+    public async Task<string> GetRepoReadmeAsync(string owner, string repo, string? pat = null)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/readme");
+        if (!string.IsNullOrWhiteSpace(pat))
+            req.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
 
-    var resp = await _http.SendAsync(req);
-    if (!resp.IsSuccessStatusCode)
-        return "README not found.";
+        var resp = await _http.SendAsync(req);
+        if (!resp.IsSuccessStatusCode)
+            return "README not found.";
 
-    var json = await resp.Content.ReadFromJsonAsync<GitHubReadmeResponse>();
-    if (json?.content == null)
-        return "README not found.";
+        var json = await resp.Content.ReadFromJsonAsync<GitHubReadmeResponse>();
+        if (json?.content == null)
+            return "README not found.";
 
-    // Decode base64, then decode URI components (to match JS logic)
-    var base64Decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(json.content));
-    var markdown = Uri.UnescapeDataString(base64Decoded);
-    return markdown;
-}
+        // Decode base64, then decode URI components (to match JS logic)
+        var base64Decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(json.content));
+        var markdown = Uri.UnescapeDataString(base64Decoded);
+        return markdown;
+    }
 
-private class GitHubReadmeResponse
-{
-    public string? content { get; set; }
-}
+    private class GitHubReadmeResponse
+    {
+        public string? content { get; set; }
+    }
     public async Task<GitHubRepoTraffic?> GetRepoTrafficAsync(string owner, string repo, string? pat = null)
     {
         if (string.IsNullOrWhiteSpace(pat))
             return null;
 
-        var traffic = new GitHubRepoTraffic { RepoName = repo };
-
-        try
+        var cacheKey = $"traffic_{owner}_{repo}";
+        return await _browserCache.GetOrFetchAsync(cacheKey, async () =>
         {
-            var viewsReq = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/traffic/views");
-            viewsReq.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
-            var viewsResp = await _http.SendAsync(viewsReq);
-            if (viewsResp.IsSuccessStatusCode)
+            var traffic = new GitHubRepoTraffic { RepoName = repo };
+            try
             {
-                var viewsData = await viewsResp.Content.ReadFromJsonAsync<TrafficViewsDetailResponse>();
-                traffic.Views = viewsData?.count ?? 0;
-                traffic.UniqueViews = viewsData?.uniques ?? 0;
-                if (viewsData?.views != null)
+                var viewsReq = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/traffic/views");
+                viewsReq.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
+                var viewsResp = await _http.SendAsync(viewsReq);
+                if (viewsResp.IsSuccessStatusCode)
                 {
-                    traffic.ViewsDaily = viewsData.views.Select(v => new GitHubRepoTraffic.TrafficViewDay
+                    var viewsData = await viewsResp.Content.ReadFromJsonAsync<TrafficViewsDetailResponse>();
+                    traffic.Views = viewsData?.count ?? 0;
+                    traffic.UniqueViews = viewsData?.uniques ?? 0;
+                    if (viewsData?.views != null)
                     {
-                        Date = v.timestamp.Split('T')[0],
-                        Count = v.count,
-                        Uniques = v.uniques
-                    }).ToList();
+                        traffic.ViewsDaily = viewsData.views.Select(v => new GitHubRepoTraffic.TrafficViewDay
+                        {
+                            Date = v.timestamp.Split('T')[0],
+                            Count = v.count,
+                            Uniques = v.uniques
+                        }).ToList();
+                    }
+                }
+
+                var clonesReq = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/traffic/clones");
+                clonesReq.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
+                var clonesResp = await _http.SendAsync(clonesReq);
+                if (clonesResp.IsSuccessStatusCode)
+                {
+                    var clonesData = await clonesResp.Content.ReadFromJsonAsync<TrafficClonesDetailResponse>();
+                    traffic.Clones = clonesData?.count ?? 0;
+                    traffic.UniqueClones = clonesData?.uniques ?? 0;
+                    if (clonesData?.clones != null)
+                    {
+                        traffic.ClonesDaily = clonesData.clones.Select(c => new GitHubRepoTraffic.TrafficCloneDay
+                        {
+                            Date = c.timestamp.Split('T')[0],
+                            Count = c.count,
+                            Uniques = c.uniques
+                        }).ToList();
+                    }
                 }
             }
-
-            var clonesReq = new HttpRequestMessage(HttpMethod.Get, $"repos/{owner}/{repo}/traffic/clones");
-            clonesReq.Headers.Authorization = new AuthenticationHeaderValue("token", pat);
-            var clonesResp = await _http.SendAsync(clonesReq);
-            if (clonesResp.IsSuccessStatusCode)
+            catch
             {
-                var clonesData = await clonesResp.Content.ReadFromJsonAsync<TrafficClonesDetailResponse>();
-                traffic.Clones = clonesData?.count ?? 0;
-                traffic.UniqueClones = clonesData?.uniques ?? 0;
-                if (clonesData?.clones != null)
-                {
-                    traffic.ClonesDaily = clonesData.clones.Select(c => new GitHubRepoTraffic.TrafficCloneDay
-                    {
-                        Date = c.timestamp.Split('T')[0],
-                        Count = c.count,
-                        Uniques = c.uniques
-                    }).ToList();
-                }
+                return null;
             }
-        }
-        catch
-        {
-            return null;
-        }
-
-        return traffic;
+            return traffic;
+        });
     }
 
     private class TrafficViewsDetailResponse
