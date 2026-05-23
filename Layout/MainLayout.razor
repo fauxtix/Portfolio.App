@@ -1,0 +1,113 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider />
+
+<MudDialogProvider />
+
+<MudSnackbarProvider />
+
+<MudLayout>
+
+
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h6">GitHub Portfolio</MudText>
+        <MudSpacer />
+        @if (!_isLoggedIn)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenLoginDialog">Login</MudButton>
+        }
+        @if (_isLoggedIn)
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
+        }
+    </MudAppBar>
+
+
+    @if (_loginDialogOpen)
+    {
+        <MudPaper Class="pa-6 mx-auto mt-8" Style="max-width:400px;position:fixed;top:20vh;left:0;right:0;z-index:1300;background:white;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+            <MudText Typo="Typo.h6">Enter GitHub PAT</MudText>
+            <MudTextField @bind-Value="_pat" Label="Personal Access Token" Variant="Variant.Outlined" InputType="InputType.Password" Class="mt-2 mb-2" />
+            <MudButton Variant="Variant.Filled" OnClick="Login" Disabled="string.IsNullOrWhiteSpace(_pat)">Login</MudButton>
+            <MudButton Variant="Variant.Text" OnClick="CloseLoginDialog">Cancel</MudButton>
+            @if (_loginError != null)
+            {
+                <MudText Color="Color.Error">@_loginError</MudText>
+            }
+        </MudPaper>
+    }
+
+    <MudMainContent Class="pa-4">
+
+        @Body
+
+    </MudMainContent>
+
+
+@code {
+    [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
+    private bool _isLoggedIn => AppState.IsLoggedIn;
+    private bool _loginDialogOpen = false;
+    private string _pat = string.Empty;
+    private string? _loginError;
+
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+
+    private void OpenSettings() => Nav.NavigateTo("/settings");
+
+    private void OpenLoginDialog()
+    {
+        _loginDialogOpen = true;
+        _loginError = null;
+    }
+
+    private void CloseLoginDialog()
+    {
+        _loginDialogOpen = false;
+        _pat = string.Empty;
+        _loginError = null;
+    }
+
+    [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
+
+    private async Task Login()
+    {
+        _loginError = null;
+        try
+        {
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
+            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
+            var resp = await http.GetAsync("https://api.github.com/user");
+            if (!resp.IsSuccessStatusCode)
+            {
+                _loginError = "Invalid PAT or insufficient permissions.";
+                StateHasChanged();
+                return;
+            }
+            await LocalStorage.SetItemAsStringAsync("github_pat", _pat);
+            AppState.SetLogin(_pat);
+            CloseLoginDialog();
+        }
+        catch
+        {
+            _loginError = "Network or API error.";
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("github_pat");
+        AppState.SetLogout();
+    }
+
+    // Do not restore login state from local storage on app start
+    protected override void OnInitialized()
+    {
+        AppState.SetLogout();
+        AppState.OnChange += StateHasChanged;
+    }
+}
+</MudLayout>

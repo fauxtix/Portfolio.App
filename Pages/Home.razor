@@ -1,0 +1,97 @@
+﻿
+@page "/"
+
+@using Portfolio.App.Models
+@using Portfolio.App.Components
+@using MudBlazor
+
+@inject IDialogService DialogService
+
+@inject GitHubApiService GitHub
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject IDialogService DialogService
+
+
+<MudContainer MaxWidth="MaxWidth.Large">
+
+    <MudText Typo="Typo.h3" Class="mb-6">
+        GitHub Portfolio
+    </MudText>
+
+
+    <MudTextField @bind-Value="_username" Label="GitHub Username" Variant="Variant.Outlined" Class="mb-4" />
+
+    <MudButton Variant="Variant.Filled" OnClick="LoadRepos" Disabled="@string.IsNullOrWhiteSpace(_username)">
+        Load Repositories
+    </MudButton>
+
+
+    <MudGrid Class="mt-6">
+        @foreach (var repo in _repos)
+        {
+            <MudItem xs="12" md="6" lg="4">
+                <RepoCard Repo="repo" IsLoggedIn="_isLoggedIn" OnShowTraffic="ShowTrafficDialog" Username="_username" Pat="_pat" />
+            </MudItem>
+        }
+    </MudGrid>
+
+</MudContainer>
+
+@code {
+    private string _username = "";
+    private List<GitHubRepo> _repos = [];
+    [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
+    private bool _isLoggedIn => AppState.IsLoggedIn;
+    private string? _pat => AppState.Pat;
+    private bool _trafficDialogOpen = false;
+    private GitHubRepoTraffic? _trafficTraffic;
+    [CascadingParameter(Name = "IsLoggedIn")] public bool CascadedIsLoggedIn { get; set; }
+    [CascadingParameter(Name = "GitHubPat")] public string? CascadedPat { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var stored = await LocalStorage.GetItemAsStringAsync("github_username");
+        _username = string.IsNullOrWhiteSpace(stored) ? "fauxtix" : stored;
+        await LoadRepos();
+        AppState.OnChange += OnAppStateChanged;
+    }
+
+    private async void OnAppStateChanged()
+    {
+        await LoadRepos();
+        StateHasChanged();
+    }
+
+    private async Task LoadRepos()
+    {
+        _repos = await GitHub.GetReposAsync(_username, _pat);
+    }
+
+    private async Task ShowTrafficDialog(GitHubRepo repo)
+    {
+        if (!_isLoggedIn || string.IsNullOrWhiteSpace(_pat))
+            return;
+
+        var traffic = await GitHub.GetRepoTrafficAsync(_username, repo.Name, _pat);
+
+        var parameters = new DialogParameters
+        {
+            ["Traffic"] = traffic
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+             Position = DialogPosition.Center,  FullScreen = false,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        };
+
+        // Show<TDialog>()
+        await DialogService.ShowAsync<TrafficDialog>( 
+            $"Traffic Insights - {repo.Name}",
+            parameters,
+            options
+        );
+    }
+}

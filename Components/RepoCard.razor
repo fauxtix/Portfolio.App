@@ -1,0 +1,54 @@
+@using Portfolio.App.Models
+
+
+@code {
+    [Parameter] public bool IsLoggedIn { get; set; }
+    [Parameter] public EventCallback<GitHubRepo> OnShowTraffic { get; set; }
+    [Parameter] public GitHubRepo Repo { get; set; } = default!;
+    [Inject] public Portfolio.App.Services.GitHubApiService GitHub { get; set; } = default!;
+    [Inject] public IDialogService DialogService { get; set; } = default!;
+    [Parameter] public string Username { get; set; } = default!;
+    [Parameter] public string? Pat { get; set; }
+
+    private async Task ShowReadMe()
+    {
+        var readme = await GitHub.GetRepoReadmeAsync(Username, Repo.Name, Pat);
+        var parameters = new DialogParameters { ["ReadMeContent"] = readme };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        await DialogService.ShowAsync<ReadMeDialog>($"README - {Repo.Name}", parameters, options);
+    }
+}
+
+<MudCard Class="pa-4 ma-2">
+
+    <MudCardHeader>
+
+        <MudText Typo="Typo.h6">
+            🚀 @Repo.Name
+        </MudText>
+
+    </MudCardHeader>
+
+    <MudCardContent>
+
+        <MudText>
+            @Repo.Description
+        </MudText>
+        <MudDivider Class="my-2" />
+        <div class="d-flex" style="gap: 8px;">
+            <MudChip T="string">⭐ @Repo.Stargazers_Count</MudChip>
+            <MudChip T="string">🍴 @Repo.Forks_Count</MudChip>
+        </div>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => ShowReadMe())">ReadMe</MudButton>
+        @if (IsLoggedIn)
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => OnShowTraffic.InvokeAsync(Repo))">Traffic</MudButton>
+        }
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Href="@Repo.Html_Url" Target="_blank">GitHub</MudButton>
+    </MudCardActions>
+
+</MudCard>

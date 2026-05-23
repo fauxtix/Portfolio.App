@@ -1,0 +1,20 @@
+﻿
+@using Markdig
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">README</MudText>
+        <MudPaper Class="pa-2" Style="max-height:400px;overflow:auto;">
+            <div style="font-family:monospace;font-size:1em;">
+                @((MarkupString)Markdown.ToHtml(ReadMeContent ?? ""))
+            </div>
+        </MudPaper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => MudDialog.Close())">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public string ReadMeContent { get; set; } = "";
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+}

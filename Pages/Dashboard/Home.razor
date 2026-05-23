@@ -1,0 +1,47 @@
+@page "/dashboard"
+
+@using Portfolio.App.Models
+@using Portfolio.App.Components
+@inject GitHubApiService GitHub
+
+<MudContainer MaxWidth="MaxWidth.Large">
+
+    <MudText Typo="Typo.h3" Class="mb-6">
+        GitHub Portfolio
+    </MudText>
+
+    <MudTextField @bind-Value="_username" Label="GitHub Username" Variant="Variant.Outlined" Class="mb-4" />
+
+    <MudButton Variant="Variant.Filled" OnClick="LoadRepos">
+
+        Load Repositories
+
+    </MudButton>
+
+    <MudGrid Class="mt-6">
+
+        @foreach (var repo in _repos)
+        {
+            <MudItem xs="12" md="6" lg="4">
+
+                <RepoCard Repo="repo" />
+
+            </MudItem>
+        }
+
+    </MudGrid>
+
+</MudContainer>
+
+@code {
+
+    private string _username = "";
+
+    private List<GitHubRepo> _repos = [];
+
+    private async Task LoadRepos()
+    {
+        _repos =
+            await GitHub.GetReposAsync(_username);
+    }
+}

@@ -1,0 +1,73 @@
+@using MudBlazor
+@using Portfolio.App.Models
+
+<MudDialog>
+    <DialogContent>
+@*         <MudText Typo="Typo.h6">
+            Traffic Insights for @Traffic?.RepoName
+        </MudText>
+ *@
+        @if (Traffic != null)
+        {
+            <div class="d-flex" style="gap: 8px; margin-bottom: 16px;">
+                <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Visibility">
+                    Views: @Traffic.Views
+                </MudChip>
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Person">
+                    Unique: @Traffic.UniqueViews
+                </MudChip>
+                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" Icon="@Icons.Material.Filled.Sync">
+                    Clones: @Traffic.Clones
+                </MudChip>
+                <MudChip T="string" Color="Color.Secondary" Variant="Variant.Filled" Icon="@Icons.Material.Filled.People">
+                    Unique: @Traffic.UniqueClones
+                </MudChip>
+            </div>
+
+            <div style="display:flex;gap:24px;align-items:flex-start;justify-content:center;">
+                <div style="flex:1;min-width:220px;padding:8px;border:1px solid #ccc;border-radius:8px;">
+                    <MudText Typo="Typo.subtitle1">Views (last 14 days)</MudText>
+                    <MudTable Items="Traffic.ViewsDaily" Dense="true">
+                        <HeaderContent>
+                            <MudTh style="width:90px;">Date</MudTh>
+                            <MudTh style="width:70px;">Views</MudTh>
+                            <MudTh style="width:70px;">Unique</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Date">@context.Date</MudTd>
+                            <MudTd DataLabel="Views">@context.Count</MudTd>
+                            <MudTd DataLabel="Unique">@context.Uniques</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+                <div style="flex:1;min-width:220px;padding:8px;border:1px solid #ccc;border-radius:8px;">
+                    <MudText Typo="Typo.subtitle1">Clones (last 14 days)</MudText>
+                    <MudTable Items="Traffic.ClonesDaily" Dense="true">
+                        <HeaderContent>
+                            <MudTh style="width:90px;">Date</MudTh>
+                            <MudTh style="width:70px;">Clones</MudTh>
+                            <MudTh style="width:70px;">Unique</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Date">@context.Date</MudTd>
+                            <MudTd DataLabel="Clones">@context.Count</MudTd>
+                            <MudTd DataLabel="Unique">@context.Uniques</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+            </div>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public GitHubRepoTraffic? Traffic { get; set; }
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    void Close() => MudDialog.Close();
+}
