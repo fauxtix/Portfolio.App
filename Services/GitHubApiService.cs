@@ -24,12 +24,17 @@ public class GitHubApiService
             "PortfolioApp");
     }
 
-    public async Task<List<GitHubRepo>> GetReposAsync(string username, string? pat = null)
+    public async Task<List<GitHubRepo>> GetReposAsync(
+        string username,
+        string? pat = null)
     {
         var cacheKey = $"repos_{username}";
-        return await _browserCache.GetOrFetchAsync<List<GitHubRepo>>(cacheKey, () => FetchReposWithTrafficAsync(username, pat));
-    }
 
+        return await _browserCache.GetOrFetchAsync<List<GitHubRepo>>(
+                   cacheKey,
+                   () => FetchReposWithTrafficAsync(username, pat))
+               ?? [];
+    }
     private async Task<List<GitHubRepo>> FetchReposWithTrafficAsync(string username, string? pat)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, $"users/{username}/repos?sort=updated&per_page=20");

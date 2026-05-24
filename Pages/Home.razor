@@ -59,15 +59,14 @@
                 _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
         }
         await LoadRepos();
-        AppState.OnChange += OnAppStateChanged;
+        AppState.OnChange += async () => await OnAppStateChanged();
     }
 
-    private async void OnAppStateChanged()
+    private async Task OnAppStateChanged()
     {
         await LoadRepos();
         StateHasChanged();
     }
-
     private async Task LoadRepos()
     {
         _repos = await GitHub.GetReposAsync(_username, _pat);

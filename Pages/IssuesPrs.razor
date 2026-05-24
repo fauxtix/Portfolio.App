@@ -1,0 +1,132 @@
+﻿@page "/issues-prs"
+
+@using Portfolio.App.Models
+@using Portfolio.App.Components
+
+@inject GitHubApiService GitHubApi
+@inject GitHubIssuesPrsService GitHubIssuesPrsService
+@inject IConfiguration Configuration
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+
+    <MudText Typo="Typo.h3" Class="mb-6">
+        GitHub PRs & Issues
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true"
+                             Color="Color.Primary" />
+    }
+    else if (_repositories.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No repositories with issues or pull requests found.
+        </MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+
+            @foreach (var repo in _repositories)
+            {
+                <MudItem xs="12" lg="6">
+
+                    <RepoIssuesPrsCard RepoName="@repo.Name"
+                                       Issues="@repo.Issues"
+                                       PullRequests="@repo.PullRequests" />
+
+                </MudItem>
+            }
+
+        </MudGrid>
+    }
+
+</MudContainer>
+
+@code {
+
+    [Inject]
+    private AppState AppState { get; set; } = default!;
+
+    private bool _loading = true;
+
+    private List<RepoIssuesPrsViewModel> _repositories = [];
+    private string _username = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            var stored = await LocalStorage.GetItemAsStringAsync("github_username");
+            if (string.IsNullOrWhiteSpace(_username))
+            {
+                if (!string.IsNullOrWhiteSpace(stored))
+                    _username = stored;
+                else
+                    _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+            }
+
+            var repos = await GitHubApi.GetReposAsync(
+                _username,
+                AppState.Pat);
+
+            var tasks = repos.Select(async repo =>
+            {
+                var issuesTask =
+                    GitHubIssuesPrsService.GetIssuesAsync(
+                        _username,
+                        repo.Name,
+                        AppState.Pat);
+
+                var prsTask =
+                    GitHubIssuesPrsService.GetPullRequestsAsync(
+                        _username,
+                        repo.Name,
+                        AppState.Pat);
+
+                await Task.WhenAll(issuesTask, prsTask);
+
+                var issues = await issuesTask;
+                var prs = await prsTask;
+
+                if (issues.Count == 0 && prs.Count == 0)
+                    return null;
+
+                return new RepoIssuesPrsViewModel
+                {
+                    Name = repo.Name,
+                    Issues = issues,
+                    PullRequests = prs
+                };
+            });
+
+            var results = await Task.WhenAll(tasks);
+
+            _repositories = results
+                .Where(r => r != null)
+                .Cast<RepoIssuesPrsViewModel>()
+                .ToList();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+    private class RepoIssuesPrsViewModel
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public List<GitHubIssue> Issues { get; set; } = [];
+
+        public List<GitHubPullRequest> PullRequests { get; set; } = [];
+    }
+}

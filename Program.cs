@@ -25,5 +25,6 @@ builder.Services.AddScoped<CacheConfigService>();
 builder.Services.AddScoped<BrowserCacheService>();
 
 builder.Services.AddScoped<GitHubApiService>();
+builder.Services.AddScoped<GitHubIssuesPrsService>();
 
 await builder.Build().RunAsync();

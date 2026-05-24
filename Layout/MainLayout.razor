@@ -10,8 +10,37 @@
 
 
     <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h6">GitHub Portfolio</MudText>
+        <MudText Typo="Typo.h6">
+            GitHub Portfolio
+        </MudText>
+
         <MudSpacer />
+
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Inherit"
+                   StartIcon="@Icons.Material.Filled.Home"
+                   OnClick="@(() => Nav.NavigateTo("/"))">
+
+            Repositories
+
+        </MudButton>
+
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Inherit"
+                   StartIcon="@Icons.Material.Filled.Merge"
+                   OnClick="@(() => Nav.NavigateTo("/issues-prs"))">
+
+            PRs & Issues
+
+        </MudButton>
+        <MudSpacer/>
+
+        <MudButton Variant="Variant.Text" 
+                   Color="Color.Inherit" 
+                   StartIcon="@Icons.Material.Filled.Settings"  
+                   OnClick="@(() => Nav.NavigateTo("/settings"))">
+        </MudButton>
+
         @if (!_isLoggedIn)
         {
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenLoginDialog">Login</MudButton>

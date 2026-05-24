@@ -1,0 +1,138 @@
+﻿@using Portfolio.App.Models
+@using MudBlazor
+
+<MudCard Class="pa-4 h-100">
+
+    <MudText Typo="Typo.h5" GutterBottom="true">
+        @RepoName
+    </MudText>
+
+    <MudGrid>
+
+        <!-- ISSUES -->
+        <MudItem xs="12" md="6">
+
+            <MudPaper Class="pa-3">
+
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2">
+
+                    <MudText Typo="Typo.h6">
+                        🐞 Issues
+                    </MudText>
+
+                    <MudChip T="string"
+                             Color="Color.Error"
+                             Variant="Variant.Filled">
+                        @Issues.Count
+                    </MudChip>
+
+                </MudStack>
+
+                <MudList T="string" Dense="true">
+
+                    @if (Issues.Count == 0)
+                    {
+                        <MudListItem T="string">
+                            <MudText Class="opacity-60">
+                                None
+                            </MudText>
+                        </MudListItem>
+                    }
+                    else
+                    {
+                        @foreach (var issue in Issues)
+                        {
+                            <MudListItem T="string">
+
+                                <MudLink Href="@issue.Html_Url"
+                                         Target="_blank">
+
+                                    #@issue.Number: @issue.Title
+
+                                </MudLink>
+
+                            </MudListItem>
+                        }
+                    }
+
+                </MudList>
+
+            </MudPaper>
+
+        </MudItem>
+
+        <!-- PRS -->
+        <MudItem xs="12" md="6">
+
+            <MudPaper Class="pa-3">
+
+                <MudStack Row="true"
+                          AlignItems="AlignItems.Center"
+                          Spacing="2">
+
+                    <MudText Typo="Typo.h6">
+                        🔀 Pull Requests
+                    </MudText>
+
+                    <MudChip T="string"
+                             Color="Color.Primary"
+                             Variant="Variant.Filled">
+
+                        @PullRequests.Count
+
+                    </MudChip>
+
+                </MudStack>
+
+                <MudList T="string" Dense="true">
+
+                    @if (PullRequests.Count == 0)
+                    {
+                        <MudListItem T="string">
+
+                            <MudText Class="opacity-60">
+                                None
+                            </MudText>
+
+                        </MudListItem>
+                    }
+                    else
+                    {
+                        @foreach (var pr in PullRequests)
+                        {
+                            <MudListItem T="string">
+
+                                <MudLink Href="@pr.Html_Url"
+                                         Target="_blank">
+
+                                    #@pr.Number: @pr.Title
+
+                                </MudLink>
+
+                            </MudListItem>
+                        }
+                    }
+
+                </MudList>
+
+            </MudPaper>
+
+        </MudItem>
+
+    </MudGrid>
+
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public string RepoName { get; set; } = string.Empty;
+
+    [Parameter]
+    public List<GitHubIssue> Issues { get; set; } = [];
+
+    [Parameter]
+    public List<GitHubPullRequest> PullRequests { get; set; } = [];
+}
