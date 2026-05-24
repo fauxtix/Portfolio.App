@@ -37,15 +37,17 @@
 </MudContainer>
 
 @code {
+    [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
+    [CascadingParameter(Name = "IsLoggedIn")] public bool CascadedIsLoggedIn { get; set; }
+    [CascadingParameter(Name = "GitHubPat")] public string? CascadedPat { get; set; }
+
     private string _username = string.Empty;
     private List<GitHubRepo> _repos = [];
-    [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
     private bool _isLoggedIn => AppState.IsLoggedIn;
     private string? _pat => AppState.Pat;
     private bool _trafficDialogOpen = false;
     private GitHubRepoTraffic? _trafficTraffic;
-    [CascadingParameter(Name = "IsLoggedIn")] public bool CascadedIsLoggedIn { get; set; }
-    [CascadingParameter(Name = "GitHubPat")] public string? CascadedPat { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {

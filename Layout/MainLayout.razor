@@ -33,13 +33,22 @@
             PRs & Issues
 
         </MudButton>
-        <MudSpacer/>
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                   OnClick="OpenPdfPreview">
 
-        <MudButton Variant="Variant.Text" 
-                   Color="Color.Inherit" 
-                   StartIcon="@Icons.Material.Filled.Settings"  
+            Export PDF
+
+        </MudButton>   
+        <MudSpacer />
+
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Inherit"
+                   StartIcon="@Icons.Material.Filled.Settings"
                    OnClick="@(() => Nav.NavigateTo("/settings"))">
         </MudButton>
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="ClearCache">Clear Cache</MudButton>
 
         @if (!_isLoggedIn)
         {
@@ -74,14 +83,71 @@
 
 
 @code {
+    private async Task ClearCache()
+    {
+        await LocalStorage.ClearAsync();
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
     [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
+    [Inject] private GitHubPdfService PdfService { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
+    [Inject] private GitHubPdfBuilderService PdfBuilder { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+    [Inject] private IConfiguration Configuration { get; set; } = default!;
+
+    [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
+
     private bool _isLoggedIn => AppState.IsLoggedIn;
     private bool _loginDialogOpen = false;
     private string _pat = string.Empty;
     private string? _loginError;
+    private string _username = string.Empty;
 
-    [Inject] private NavigationManager Nav { get; set; } = default!;
-    [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+    protected override async Task OnInitializedAsync()
+    {
+        var stored = await LocalStorage.GetItemAsStringAsync("github_username");
+        if (string.IsNullOrWhiteSpace(_username))
+        {
+            if (!string.IsNullOrWhiteSpace(stored))
+                _username = stored;
+            else
+                _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+        }
+
+    }
+
+    private async Task OpenPdfPreview()
+    {
+        var pat = AppState.Pat;
+
+        // STEP 1: Build full export model (clean architecture layer)
+        var model = await PdfBuilder.BuildAsync(_username, pat);
+
+        // STEP 2: Prepare dialog parameters
+        var parameters = new DialogParameters
+        {
+            ["Model"] = model,
+            ["OnExport"] = EventCallback.Factory.Create(this, async () =>
+            {
+                await PdfService.DownloadAsync(_username, pat);
+            })
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium,
+            Position = DialogPosition.Center
+        };
+
+        // STEP 3: Open dialog
+        await DialogService.ShowAsync<PdfExportDialog>(
+            "Export Portfolio",
+            parameters,
+            options);
+    }
 
     private void OpenSettings() => Nav.NavigateTo("/settings");
 
@@ -98,7 +164,6 @@
         _loginError = null;
     }
 
-    [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
 
     private async Task Login()
     {
@@ -137,6 +202,11 @@
     {
         AppState.SetLogout();
         AppState.OnChange += StateHasChanged;
+    }
+
+    private async Task DownloadPdf()
+    {
+        await PdfService.DownloadAsync(_username, AppState.Pat);
     }
 }
 </MudLayout>

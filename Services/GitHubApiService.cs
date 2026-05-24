@@ -45,7 +45,8 @@ public class GitHubApiService
         if (!response.IsSuccessStatusCode)
             return new List<GitHubRepo>();
 
-        var repos = await response.Content.ReadFromJsonAsync<List<GitHubRepo>>() ?? new List<GitHubRepo>();
+        var repos = await response.Content.ReadFromJsonAsync<List<GitHubRepo>>()
+            ?? [];
 
         if (!string.IsNullOrWhiteSpace(pat))
         {
@@ -161,6 +162,32 @@ public class GitHubApiService
         });
     }
 
+    public async Task<GitHubProfile> GetUserProfileAsync(string username, string? pat = null)
+    {
+        var cacheKey = $"profile_{username}";
+
+        return await _browserCache.GetOrFetchAsync<GitHubProfile>(
+                   cacheKey,
+                   () => FetchUserProfileAsync(username, pat))
+               ?? new GitHubProfile();
+    }
+
+    private async Task<GitHubProfile> FetchUserProfileAsync(string username, string? pat)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, $"users/{username}");
+
+        if (!string.IsNullOrWhiteSpace(pat))
+            req.Headers.Authorization =
+                new AuthenticationHeaderValue("token", pat);
+
+        var resp = await _http.SendAsync(req);
+
+        if (!resp.IsSuccessStatusCode)
+            return new GitHubProfile();
+
+        return await resp.Content.ReadFromJsonAsync<GitHubProfile>()
+               ?? new GitHubProfile();
+    }
     private class TrafficViewsDetailResponse
     {
         public int count { get; set; }

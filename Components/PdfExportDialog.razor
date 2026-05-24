@@ -1,0 +1,91 @@
+﻿@using Portfolio.App.Models
+@using Portfolio.App.Models.Pdf
+
+<MudDialog>
+    <DialogContent>
+
+        <MudText Typo="Typo.h6" Class="mb-4">
+            Export GitHub Portfolio
+        </MudText>
+
+        @if (Model is null)
+        {
+            <MudProgressCircular Indeterminate="true" />
+        }
+        else
+        {
+            <MudPaper Class="pa-4">
+
+                <MudText Typo="Typo.subtitle1">
+                    @Model.Profile.Name (@Model.Profile.Login)
+                </MudText>
+
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    Public repos: @Model.Profile.PublicRepos
+                </MudText>
+
+                <MudDivider Class="my-3" />
+
+                <MudText Typo="Typo.subtitle2">
+                    Repositories preview
+                </MudText>
+
+                @foreach (var repo in Model.Repositories.Take(5))
+                {
+                    <MudPaper Class="pa-2 mb-2" Style="background:#f9f9f9;">
+                        <MudText Typo="Typo.subtitle2">
+                            <a href="@repo.HtmlUrl" target="_blank" rel="noopener">@repo.Name</a>
+                            <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Star" Class="ml-2">@repo.StargazersCount</MudChip>
+                            <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.CallSplit" Class="ml-1">@repo.ForksCount</MudChip>
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            Language: @repo.Language | Updated: @(repo.UpdatedAt?.Split('T')[0])
+                        </MudText>
+                        @if (!string.IsNullOrWhiteSpace(repo.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mt-1">@repo.Description</MudText>
+                        }
+                    </MudPaper>
+                }
+            </MudPaper>
+        }
+
+    </DialogContent>
+
+    <DialogActions>
+
+        <MudButton OnClick="Cancel">
+            Cancel
+        </MudButton>
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Export">
+
+            Download PDF
+
+        </MudButton>
+
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public GitHubPdfModel? Model { get; set; }
+
+    [Parameter] public EventCallback OnExport { get; set; }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Export()
+    {
+        if (OnExport.HasDelegate)
+            await OnExport.InvokeAsync();
+
+        MudDialog.Close();
+    }
+}

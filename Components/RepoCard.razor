@@ -38,10 +38,10 @@
         <MudDivider Class="my-2" />
         <MudStack Direction="Row" Spacing="1">
             <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Star">
-                Stars: @Repo.Stargazers_Count
+                Stars: @Repo.StargazersCount
             </MudChip>
             <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.CallSplit">
-                Forks: @Repo.Forks_Count
+                Forks: @Repo.ForksCount
             </MudChip>
         </MudStack>
     </MudCardContent>
@@ -54,7 +54,7 @@
                 <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="@(() => OnShowTraffic.InvokeAsync(Repo))" StartIcon="@Icons.Material.Filled.Traffic">Traffic</MudButton>
             }
             <MudSpacer />
-            <MudButton Variant="Variant.Text" Href="@Repo.Html_Url" Target="_blank" StartIcon="@Icons.Material.Filled.OpenInNew">GitHub</MudButton>
+            <MudButton Variant="Variant.Text" Href="@Repo.HtmlUrl" Target="_blank" Rel="noopener" StartIcon="@Icons.Material.Filled.OpenInNew">GitHub</MudButton>
         </div>
     </MudCardActions>
 

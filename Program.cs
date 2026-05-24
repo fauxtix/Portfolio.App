@@ -26,5 +26,7 @@ builder.Services.AddScoped<BrowserCacheService>();
 
 builder.Services.AddScoped<GitHubApiService>();
 builder.Services.AddScoped<GitHubIssuesPrsService>();
+builder.Services.AddScoped<GitHubPdfBuilderService>();
+builder.Services.AddScoped<GitHubPdfService>();
 
 await builder.Build().RunAsync();
