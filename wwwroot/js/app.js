@@ -91,11 +91,9 @@ function initializeTheme() {
 }
 
 toggleThemeButton.addEventListener("click", toggleTheme);
-// Apply theme from settings if present
 initializeTheme();
 
-/* GITHUB */
-const CACHE_DURATION = window.CONFIG?.cacheDuration || 6 * 60 * 60 * 1000; // 6 hours in ms
+const CACHE_DURATION = window.CONFIG?.cacheDuration || 6 * 60 * 60 * 1000;
 
 function getCache(key) {
   try {

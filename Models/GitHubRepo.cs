@@ -22,4 +22,10 @@ public class GitHubRepo
     // your enriched fields
     public int Views { get; set; }
     public int Clones { get; set; }
+
+    [JsonPropertyName("open_issues_count")]
+    public int OpenIssuesCount { get; set; }
+
+    // Not part of default repo API, but can be set when enriching
+    public int OpenPrsCount { get; set; }
 }

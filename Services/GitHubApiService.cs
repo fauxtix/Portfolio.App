@@ -95,7 +95,6 @@ public class GitHubApiService
         if (json?.content == null)
             return "README not found.";
 
-        // Decode base64, then decode URI components (to match JS logic)
         var base64Decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(json.content));
         var markdown = Uri.UnescapeDataString(base64Decoded);
         return markdown;

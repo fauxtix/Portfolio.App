@@ -10,17 +10,19 @@
     [Parameter] public string Username { get; set; } = default!;
     [Parameter] public string? Pat { get; set; }
 
+    private string DescriptionOrFallback => string.IsNullOrWhiteSpace(Repo?.Description) ? "No description provided." : Repo.Description;
+
     private async Task ShowReadMe()
     {
         var readme = await GitHub.GetRepoReadmeAsync(Username, Repo.Name, Pat);
         var parameters = new DialogParameters { ["ReadMeContent"] = readme };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions { CloseButton = true,  MaxWidth = MaxWidth.Medium, FullWidth = true };
         await DialogService.ShowAsync<ReadMeDialog>($"README - {Repo.Name}", parameters, options);
     }
 }
 
 
-<MudCard Class="ma-2" Style="height:340px;display:flex;flex-direction:column;" Elevation="4" Square="false">
+<MudCard Class="ma-2" Style="height:420px;display:flex;flex-direction:column;" Elevation="4" Square="false">
 
     <MudCardHeader>
 
@@ -31,22 +33,28 @@
     </MudCardHeader>
 
 
-    <MudCardContent Style="flex:1 1 auto;display:flex;flex-direction:column;">
-        <div style="height:100px;overflow:auto;">
-            <MudText>@Repo.Description</MudText>
+    <MudCardContent Style="flex:1 1 0;display:flex;flex-direction:column;">
+        <div style="height:150px;overflow:auto;">
+            <MudText Color="Color.Default" Italic="@(string.IsNullOrWhiteSpace(Repo?.Description))">@DescriptionOrFallback</MudText>
         </div>
         <MudDivider Class="my-2" />
-        <MudStack Direction="Row" Spacing="1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;">
             <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Star">
-                Stars: @Repo.StargazersCount
+                Stars: @Repo?.StargazersCount
             </MudChip>
             <MudChip T="string" Color="Color.Info" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.CallSplit">
-                Forks: @Repo.ForksCount
+                Forks: @Repo?.ForksCount
             </MudChip>
-        </MudStack>
+            <MudChip T="string" Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.ErrorOutline">
+                Issues: @Repo?.OpenIssuesCount
+            </MudChip>
+            <MudChip T="string" Color="Color.Success" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.MergeType">
+                PRs: @Repo.OpenPrsCount
+            </MudChip>
+        </div>
     </MudCardContent>
 
-    <MudCardActions>
+    <MudCardActions Style="margin-top:auto;">
         <div class="d-flex justify-content-between align-items-center w-100 mb-2" style="gap:8px;">
             <MudButton Variant="Variant.Outlined" Color="Color.Info" OnClick="ShowReadMe" StartIcon="@Icons.Material.Filled.Description">ReadMe</MudButton>
             @if (IsLoggedIn)

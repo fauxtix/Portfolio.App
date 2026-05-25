@@ -35,6 +35,7 @@
         </MudButton>
         <MudButton Variant="Variant.Text"
                    StartIcon="@Icons.Material.Filled.PictureAsPdf"
+                   Color="Color.Inherit"
                    OnClick="OpenPdfPreview">
 
             Export PDF
@@ -121,10 +122,8 @@
     {
         var pat = AppState.Pat;
 
-        // STEP 1: Build full export model (clean architecture layer)
         var model = await PdfBuilder.BuildAsync(_username, pat);
 
-        // STEP 2: Prepare dialog parameters
         var parameters = new DialogParameters
         {
             ["Model"] = model,
@@ -142,7 +141,6 @@
             Position = DialogPosition.Center
         };
 
-        // STEP 3: Open dialog
         await DialogService.ShowAsync<PdfExportDialog>(
             "Export Portfolio",
             parameters,

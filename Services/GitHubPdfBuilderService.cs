@@ -26,12 +26,11 @@ public class GitHubPdfBuilderService
 
                 PublicRepos = profile?.Public_repos ?? repos.Count,
 
-                // FIX: map real GitHub API fields (if available later)
                 Followers = profile?.Followers ?? 0,
                 Following = profile?.Following ?? 0,
 
                 AvatarUrl = null,
-                Bio = profile?.Name // GitHubProfile doesn't currently expose bio/avatar
+                Bio = profile?.Name 
             },
 
             Repositories = repos.Select(r => new PdfRepo

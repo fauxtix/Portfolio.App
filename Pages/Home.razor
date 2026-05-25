@@ -51,7 +51,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Only set the default username if there is no stored or user-entered value
         var stored = await LocalStorage.GetItemAsStringAsync("github_username");
         if (string.IsNullOrWhiteSpace(_username))
         {
@@ -94,7 +93,6 @@
             MaxWidth = MaxWidth.Medium
         };
 
-        // Show<TDialog>()
         await DialogService.ShowAsync<TrafficDialog>( 
             $"Traffic Insights - {repo.Name}",
             parameters,
