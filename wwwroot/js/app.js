@@ -1,48 +1,34 @@
-// Login/Logout button logic
-const authBtn = document.getElementById("authBtn");
-function updateAuthBtn() {
-  if (!authBtn) return;
-  const token = sessionStorage.getItem("github_token");
-  if (token) {
-    authBtn.textContent = "🔓 Logout";
-    authBtn.onclick = () => {
-      sessionStorage.removeItem("github_token");
-      window.location.reload();
-    };
-  } else {
-    authBtn.textContent = "🔑 Login";
-    authBtn.onclick = () => {
-      window.location.href = "./src/pages/login.html";
-    };
-  }
-}
-updateAuthBtn();
-// Hamburger menu logic
-const hamburgerBtn = document.getElementById("hamburgerBtn");
-const mainNav = document.getElementById("mainNav");
-if (hamburgerBtn && mainNav) {
-  hamburgerBtn.addEventListener("click", () => {
-    const isOpen = mainNav.classList.toggle("open");
-    hamburgerBtn.classList.toggle("open", isOpen);
-    hamburgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  });
-  // Optional: close nav when clicking outside or on a link (mobile UX)
-  mainNav.querySelectorAll("a,button").forEach((el) => {
-    el.addEventListener("click", () => {
-      if (window.innerWidth <= 700) {
+// All legacy DOM-manipulating JS removed for Blazor stability.
+// If you need custom JS interop, add only what is required for your Blazor app.
+
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  const mainNav = document.getElementById("mainNav");
+  if (hamburgerBtn && mainNav) {
+    hamburgerBtn.addEventListener("click", () => {
+      const isOpen = mainNav.classList.toggle("open");
+      hamburgerBtn.classList.toggle("open", isOpen);
+      hamburgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+    // Optional: close nav when clicking outside or on a link (mobile UX)
+    mainNav.querySelectorAll("a,button").forEach((el) => {
+      el.addEventListener("click", () => {
+        if (window.innerWidth <= 700) {
+          mainNav.classList.remove("open");
+          hamburgerBtn.classList.remove("open");
+          hamburgerBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 700) {
         mainNav.classList.remove("open");
         hamburgerBtn.classList.remove("open");
         hamburgerBtn.setAttribute("aria-expanded", "false");
       }
     });
-  });
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 700) {
-      mainNav.classList.remove("open");
-      hamburgerBtn.classList.remove("open");
-      hamburgerBtn.setAttribute("aria-expanded", "false");
-    }
-  });
+  }
+} catch (e) {
+  // Ignore errors if elements are not present (Blazor SPA)
 }
 const toggleThemeButton = document.getElementById("toggleTheme");
 const repoGrid = document.getElementById("repoGrid");
@@ -90,7 +76,7 @@ function initializeTheme() {
   applyTheme(prefersDark ? "dark" : "light");
 }
 
-toggleThemeButton.addEventListener("click", toggleTheme);
+if (toggleThemeButton) toggleThemeButton.addEventListener("click", toggleTheme);
 initializeTheme();
 
 const CACHE_DURATION = window.CONFIG?.cacheDuration || 6 * 60 * 60 * 1000;
@@ -403,28 +389,30 @@ function filterAndRenderRepos() {
       return matchesSearch && matchesLang;
     }),
   );
-  clearSearchBtn.style.display = q ? "flex" : "none";
+  if (clearSearchBtn) clearSearchBtn.style.display = q ? "flex" : "none";
 }
 
-searchInput.addEventListener("input", filterAndRenderRepos);
-languageFilter.addEventListener("change", filterAndRenderRepos);
+if (searchInput) searchInput.addEventListener("input", filterAndRenderRepos);
+if (languageFilter) languageFilter.addEventListener("change", filterAndRenderRepos);
 
 // Show/hide clear button on load
-clearSearchBtn.style.display = searchInput.value ? "flex" : "none";
+if (clearSearchBtn && searchInput) clearSearchBtn.style.display = searchInput.value ? "flex" : "none";
 
-clearSearchBtn.addEventListener("click", () => {
-  searchInput.value = "";
+if (clearSearchBtn) clearSearchBtn.addEventListener("click", () => {
+  if (searchInput) searchInput.value = "";
   filterAndRenderRepos();
-  clearSearchBtn.style.display = "none";
-  searchInput.focus();
+  if (clearSearchBtn) clearSearchBtn.style.display = "none";
+  if (searchInput) searchInput.focus();
 });
 
 /* MODAL */
-closeModal.onclick = () => modal.classList.add("hidden");
+if (closeModal && modal) closeModal.onclick = () => modal.classList.add("hidden");
 
-modal.onclick = (e) => {
-  if (e.target === modal) modal.classList.add("hidden");
-};
+if (modal) {
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  };
+}
 
 /* INIT */
 async function init() {

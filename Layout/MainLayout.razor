@@ -6,42 +6,53 @@
 
 <MudSnackbarProvider />
 
-<MudLayout>
+<MudLayout Class="@_themeClass">
 
+    <!-- TOP NAVBAR -->
+    <MudAppBar Elevation="1" Fixed="true">
 
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h6">
-            GitHub Portfolio
+        <!-- Brand/Logo -->
+        <MudText Class="font-weight-bold ml-2 mr-6" Style="font-size:1.3rem;align-self:center;cursor:pointer;" OnClick="@(() => Nav.NavigateTo("/"))">
+            <span style="font-size:1.5rem;vertical-align:middle;">🚀</span> GitHub Portfolio
         </MudText>
 
+        <!-- Centered Navigation -->
+        <div class="d-none d-md-flex flex-grow-1 justify-center gap-4">
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Inherit"
+                       Style="font-size:1.1rem;"
+                       OnClick="@(() => Nav.NavigateTo("/"))">
+                <span style="font-size:1.3rem;vertical-align:middle;">🗂️</span> <span class="ml-1">Repositories</span>
+            </MudButton>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Inherit"
+                       Style="font-size:1.1rem;"
+                       OnClick="@(() => Nav.NavigateTo("/issues-prs"))">
+                <span style="font-size:1.3rem;vertical-align:middle;">🔀</span> <span class="ml-1">PRs & Issues</span>
+            </MudButton>
+        </div>
+
         <MudSpacer />
 
+        <MudIconButton Icon="@Icons.Material.Filled.Download"
+                       Color="Color.Inherit"
+                       OnClick="DownloadPdf"
+                       Title="Download PDF" />
+
+        <!-- THEME TOGGLE -->
         <MudButton Variant="Variant.Text"
                    Color="Color.Inherit"
-                   StartIcon="@Icons.Material.Filled.Home"
-                   OnClick="@(() => Nav.NavigateTo("/"))">
-
-            Repositories
-
+                   Style="font-size:1.5rem;min-width:40px;"
+                   OnClick="ToggleTheme">
+            @_themeEmoji
         </MudButton>
 
+        <!-- CLEAR CACHE -->
         <MudButton Variant="Variant.Text"
-                   Color="Color.Inherit"
-                   StartIcon="@Icons.Material.Filled.Merge"
-                   OnClick="@(() => Nav.NavigateTo("/issues-prs"))">
-
-            PRs & Issues
-
+                   Color="Color.Error"
+                   StartIcon="@Icons.Material.Filled.Delete"
+                   OnClick="ClearCache">
         </MudButton>
-        <MudButton Variant="Variant.Text"
-                   StartIcon="@Icons.Material.Filled.PictureAsPdf"
-                   Color="Color.Inherit"
-                   OnClick="OpenPdfPreview">
-
-            Export PDF
-
-        </MudButton>   
-        <MudSpacer />
 
         <MudButton Variant="Variant.Text"
                    Color="Color.Inherit"
@@ -49,110 +60,197 @@
                    OnClick="@(() => Nav.NavigateTo("/settings"))">
         </MudButton>
 
-        <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="ClearCache">Clear Cache</MudButton>
-
+        <!-- LOGIN / LOGOUT -->
         @if (!_isLoggedIn)
         {
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenLoginDialog">Login</MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="OpenLoginDialog">
+                Login
+            </MudButton>
         }
+
         @if (_isLoggedIn)
         {
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
+            <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       OnClick="Logout">
+                Logout
+            </MudButton>
         }
+
     </MudAppBar>
 
-
+    <!-- LOGIN DIALOG -->
     @if (_loginDialogOpen)
     {
-        <MudPaper Class="pa-6 mx-auto mt-8" Style="max-width:400px;position:fixed;top:20vh;left:0;right:0;z-index:1300;background:white;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-            <MudText Typo="Typo.h6">Enter GitHub PAT</MudText>
-            <MudTextField @bind-Value="_pat" Label="Personal Access Token" Variant="Variant.Outlined" InputType="InputType.Password" Class="mt-2 mb-2" />
-            <MudButton Variant="Variant.Filled" OnClick="Login" Disabled="string.IsNullOrWhiteSpace(_pat)">Login</MudButton>
-            <MudButton Variant="Variant.Text" OnClick="CloseLoginDialog">Cancel</MudButton>
+        <MudPaper Class="pa-6 mx-auto mt-8"
+                  Style="max-width:400px;
+            position:fixed;
+            top:20vh;
+            left:0;
+            right:0;
+            z-index:1300;
+            background:white;
+            box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+
+            <MudText Typo="Typo.h6">
+                Enter GitHub PAT
+            </MudText>
+
+            <MudTextField @bind-Value="_pat"
+                          Label="Personal Access Token"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Class="mt-2 mb-2" />
+
+            <MudButton Variant="Variant.Filled"
+                       OnClick="Login"
+                       Disabled="string.IsNullOrWhiteSpace(_pat)">
+                Login
+            </MudButton>
+
+            <MudButton Variant="Variant.Text"
+                       OnClick="CloseLoginDialog">
+                Cancel
+            </MudButton>
+
             @if (_loginError != null)
             {
-                <MudText Color="Color.Error">@_loginError</MudText>
+                <MudText Color="Color.Error">
+                    @_loginError
+                </MudText>
             }
+
         </MudPaper>
     }
 
-    <MudMainContent Class="pa-4">
+    <!-- MOBILE DRAWER -->
+    <MudDrawer @bind-Open="_drawerOpen"
+               Anchor="Anchor.Left"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="2"
+               Variant="DrawerVariant.Temporary">
 
-        @Body
+        <MudNavMenu Class="pt-4">
 
+            <MudNavLink Href="/"
+                        Match="NavLinkMatch.All"
+                        Icon="@Icons.Material.Filled.Home">
+                Repositories
+            </MudNavLink>
+
+            <MudNavLink Href="/issues-prs"
+                        Icon="@Icons.Material.Filled.Merge">
+                PRs & Issues
+            </MudNavLink>
+
+
+
+            <MudNavLink Href="/settings"
+                        Icon="@Icons.Material.Filled.Settings">
+                Settings
+            </MudNavLink>
+
+        </MudNavMenu>
+
+    </MudDrawer>
+
+    <!-- MAIN PAGE CONTENT -->
+    <!-- FIX: padding-top prevents AppBar overlap -->
+    <MudMainContent Style="padding-top:80px;" Class="@(_themeClass == "dark-theme" ? "dark-theme-bg" : "light-theme-bg")">
+        <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+            @Body
+        </MudContainer>
     </MudMainContent>
 
+</MudLayout>
 
 @code {
-    private async Task ClearCache()
-    {
-        await LocalStorage.ClearAsync();
-        Nav.NavigateTo(Nav.Uri, forceLoad: true);
-    }
-    [Inject] private Portfolio.App.Services.AppState AppState { get; set; } = default!;
-    [Inject] private GitHubPdfService PdfService { get; set; } = default!;
-    [Inject] private IDialogService DialogService { get; set; } = default!;
-    [Inject] private GitHubPdfBuilderService PdfBuilder { get; set; } = default!;
-    [Inject] private NavigationManager Nav { get; set; } = default!;
-    [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
-    [Inject] private IConfiguration Configuration { get; set; } = default!;
-
+    [Inject] Portfolio.App.Services.ThemeService ThemeService { get; set; } = default!;
+    [Inject] Portfolio.App.Services.AppState AppState { get; set; } = default!;
+    [Inject] IJSRuntime JS { get; set; } = default!;
+    [Inject] GitHubPdfService PdfService { get; set; } = default!;
+    [Inject] IDialogService DialogService { get; set; } = default!;
+    [Inject] GitHubPdfBuilderService PdfBuilder { get; set; } = default!;
+    [Inject] NavigationManager Nav { get; set; } = default!;
+    [Inject] Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+    [Inject] IConfiguration Configuration { get; set; } = default!;
     [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
 
-    private bool _isLoggedIn => AppState.IsLoggedIn;
+    private string _themeClass = "light-theme";
+
+    private string _themeEmoji =>
+        _themeClass == "dark-theme" ? "🌙" : "☀️";
+
+    private bool _drawerOpen;
+
     private bool _loginDialogOpen = false;
+
     private string _pat = string.Empty;
+
     private string? _loginError;
+
     private string _username = string.Empty;
+
+    private bool _isLoggedIn => AppState.IsLoggedIn;
 
     protected override async Task OnInitializedAsync()
     {
+        ThemeService.SetLocalStorage(LocalStorage);
+        ThemeService.OnThemeChanged += OnThemeChanged;
+        await ThemeService.LoadThemeAsync();
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        // Ensure username exists for PDF export
         var stored = await LocalStorage.GetItemAsStringAsync("github_username");
-        if (string.IsNullOrWhiteSpace(_username))
-        {
-            if (!string.IsNullOrWhiteSpace(stored))
-                _username = stored;
-            else
-                _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
-        }
-
+        if (!string.IsNullOrWhiteSpace(stored))
+            _username = stored;
+        else
+            _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+        await base.OnInitializedAsync();
     }
 
-    private async Task OpenPdfPreview()
+    private void ToggleDrawer()
     {
-        var pat = AppState.Pat;
-
-        var model = await PdfBuilder.BuildAsync(_username, pat);
-
-        var parameters = new DialogParameters
-        {
-            ["Model"] = model,
-            ["OnExport"] = EventCallback.Factory.Create(this, async () =>
-            {
-                await PdfService.DownloadAsync(_username, pat);
-            })
-        };
-
-        var options = new DialogOptions
-        {
-            CloseButton = true,
-            FullWidth = true,
-            MaxWidth = MaxWidth.Medium,
-            Position = DialogPosition.Center
-        };
-
-        await DialogService.ShowAsync<PdfExportDialog>(
-            "Export Portfolio",
-            parameters,
-            options);
+        _drawerOpen = !_drawerOpen;
     }
 
-    private void OpenSettings() => Nav.NavigateTo("/settings");
+    private async void OnThemeChanged()
+    {
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        await JS.InvokeVoidAsync("applyDialogTheme", _themeClass);
+        StateHasChanged();
+    }
+
+    private async Task ToggleTheme()
+    {
+        await ThemeService.ToggleThemeAsync();
+    }
+
+    private async Task ClearCache()
+    {
+        await LocalStorage.ClearAsync();
+
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+
+    private void GoToPdfExport()
+    {
+        Nav.NavigateTo("/pdf-export");
+    }
+
+    private void OpenSettings()
+    {
+        Nav.NavigateTo("/settings");
+    }
 
     private void OpenLoginDialog()
     {
-        _loginDialogOpen = true;
-        _loginError = null;
+        if (!_loginDialogOpen)
+        {
+            _loginDialogOpen = true;
+            _loginError = null;
+        }
     }
 
     private void CloseLoginDialog()
@@ -160,31 +258,43 @@
         _loginDialogOpen = false;
         _pat = string.Empty;
         _loginError = null;
+        StateHasChanged();
     }
-
 
     private async Task Login()
     {
         _loginError = null;
+
         try
         {
             using var http = new HttpClient();
+
             http.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
-            http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
+
+            http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
+
             var resp = await http.GetAsync("https://api.github.com/user");
+
             if (!resp.IsSuccessStatusCode)
             {
                 _loginError = "Invalid PAT or insufficient permissions.";
+
                 StateHasChanged();
+
                 return;
             }
+
             await LocalStorage.SetItemAsStringAsync("github_pat", _pat);
+
             AppState.SetLogin(_pat);
+
             CloseLoginDialog();
         }
         catch
         {
             _loginError = "Network or API error.";
+
             StateHasChanged();
         }
     }
@@ -192,13 +302,14 @@
     private async Task Logout()
     {
         await LocalStorage.RemoveItemAsync("github_pat");
+
         AppState.SetLogout();
     }
 
-    // Do not restore login state from local storage on app start
-    protected override void OnInitialized()
+    private void AppStateInit()
     {
         AppState.SetLogout();
+
         AppState.OnChange += StateHasChanged;
     }
 
@@ -207,4 +318,4 @@
         await PdfService.DownloadAsync(_username, AppState.Pat);
     }
 }
-</MudLayout>
+}

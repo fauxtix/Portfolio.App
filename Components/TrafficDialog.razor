@@ -25,7 +25,7 @@
             </div>
 
             <div style="display:flex;gap:24px;align-items:flex-start;justify-content:center;">
-                <div style="flex:1;min-width:220px;padding:8px;border:1px solid #ccc;border-radius:8px;">
+                <div class="traffic-table-container">
                     <MudText Typo="Typo.subtitle1">Views (last 14 days)</MudText>
                     <MudTable Items="Traffic.ViewsDaily" Dense="true">
                         <HeaderContent>
@@ -40,7 +40,7 @@
                         </RowTemplate>
                     </MudTable>
                 </div>
-                <div style="flex:1;min-width:220px;padding:8px;border:1px solid #ccc;border-radius:8px;">
+                <div class="traffic-table-container">
                     <MudText Typo="Typo.subtitle1">Clones (last 14 days)</MudText>
                     <MudTable Items="Traffic.ClonesDaily" Dense="true">
                         <HeaderContent>

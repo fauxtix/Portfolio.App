@@ -1,0 +1,107 @@
+.light-theme {
+    --background: #fff;
+    --foreground: #222;
+    --navbar-bg: #f7f7f7;
+    --navbar-fg: #222;
+}
+
+
+.dark-theme {
+    --background: #181818;
+    --foreground: #f7f7f7;
+    --navbar-bg: #23272f;
+    --navbar-fg: #f7f7f7;
+    --card-border: #444b5a;
+}
+
+
+body, .mud-main-content, .main-content, .page, .nav-scrollable, .mud-layout, .mud-appbar, .mud-paper {
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+}
+
+.dark-theme .mud-paper,
+.dark-theme .mud-card,
+.dark-theme .repo-card,
+.dark-theme .mud-dialog {
+    border: 1px solid var(--card-border) !important;
+    box-shadow: 0 2px 8px 0 rgba(68,75,90,0.15);
+}
+
+.mud-appbar, .navbar, .top-row {
+    background: var(--navbar-bg) !important;
+    color: var(--navbar-fg) !important;
+}
+
+/* Improve divider visibility in light mode for RepoCard */
+.light-theme .mud-card .mud-divider {
+    border-color: #b0b8c1 !important;
+    opacity: 1 !important;
+}
+
+/* Home page search bar text color in dark mode */
+.dark-theme input.mud-input, .dark-theme .mud-input input {
+    color: #e0e6ef !important;
+}
+
+/* GitHub button in RepoCard in dark mode */
+.dark-theme .mud-card .mud-button.mud-button-text[rel="noopener"] {
+    color: #e0e6ef !important;
+    border-color: #e0e6ef !important;
+}
+
+/* Home page: Load Repositories button and GitHub Username label in dark mode */
+.dark-theme .mud-button.mud-button-filled {
+    color: #e0e6ef !important;
+    border-width: 1.5px !important;
+    border-style: solid !important;
+    border-color: #4fc3f7 !important; /* Soft blue accent */
+    border-radius: 12px !important;
+    box-shadow: 0 1px 6px 0 rgba(79,195,247,0.08);
+}
+
+.dark-theme .mud-input-label {
+    color: #e0e6ef !important;
+}
+
+/* Always show vertical scrollbar for RepoCard description area */
+.repo-description-scroll {
+    overflow-y: scroll !important;
+    scrollbar-width: thin;
+}
+
+/* Custom scrollbar for dark mode */
+.dark-theme .repo-description-scroll::-webkit-scrollbar {
+    width: 8px;
+    background: #23272f;
+}
+
+.dark-theme .repo-description-scroll::-webkit-scrollbar-thumb {
+    background: #444b5a;
+    border-radius: 8px;
+}
+
+/* TrafficDialog table containers theme support */
+.traffic-table-container {
+    flex: 1;
+    min-width: 220px;
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+    border: 1px solid var(--card-border, #ccc) !important;
+}
+
+.light-theme .traffic-table-container {
+    border-color: #b0b8c1 !important;
+    background: #fff !important;
+    color: #222 !important;
+}
+
+.dark-theme .traffic-table-container {
+    border-color: #444b5a !important;
+    background: #23272f !important;
+    color: #e0e6ef !important;
+}
+
+/* Add more overrides as needed for your app */

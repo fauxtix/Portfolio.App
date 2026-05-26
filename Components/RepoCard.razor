@@ -34,7 +34,7 @@
 
 
     <MudCardContent Style="flex:1 1 0;display:flex;flex-direction:column;">
-        <div style="height:150px;overflow:auto;">
+        <div class="repo-description-scroll" style="height:150px;">
             <MudText Color="Color.Default" Italic="@(string.IsNullOrWhiteSpace(Repo?.Description))">@DescriptionOrFallback</MudText>
         </div>
         <MudDivider Class="my-2" />
