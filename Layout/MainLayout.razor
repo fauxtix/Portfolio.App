@@ -1,23 +1,32 @@
 ﻿@inherits LayoutComponentBase
 
+
 <MudThemeProvider />
 
 <MudDialogProvider />
 
 <MudSnackbarProvider />
 
+<MudPopoverProvider />
+
 <MudLayout Class="@_themeClass">
 
     <!-- TOP NAVBAR -->
     <MudAppBar Elevation="1" Fixed="true">
 
+        <!-- Hamburger (mobile only) -->
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Class="d-md-none mr-2"
+                       OnClick="ToggleDrawer"
+                       Edge="Edge.Start"/>
         <!-- Brand/Logo -->
-        <MudText Class="font-weight-bold ml-2 mr-6" Style="font-size:1.3rem;align-self:center;cursor:pointer;" OnClick="@(() => Nav.NavigateTo("/"))">
-            <span style="font-size:1.5rem;vertical-align:middle;">🚀</span> GitHub Portfolio
+        <MudText Class="brand-text font-weight-bold ml-2 mr-6" OnClick="@(() => Nav.NavigateTo("/"))">
+            <span style="vertical-align:middle;">🚀</span> GitHub Portfolio
         </MudText>
 
         <!-- Centered Navigation -->
-        <div class="d-none d-md-flex flex-grow-1 justify-center gap-4">
+        <div class="d-none d-md-flex flex-grow-1 nav-center">
             <MudButton Variant="Variant.Text"
                        Color="Color.Inherit"
                        Style="font-size:1.1rem;"
@@ -34,98 +43,52 @@
 
         <MudSpacer />
 
-        <MudIconButton Icon="@Icons.Material.Filled.Download"
+        <div class="navbar-actions">
+            <MudIconButton Icon="@Icons.Material.Filled.Download"
+                           Color="Color.Inherit"
+                           OnClick="DownloadPdf"
+                           Size="Size.Medium" />
+
+            <!-- THEME TOGGLE -->
+            <MudButton Variant="Variant.Text"
                        Color="Color.Inherit"
-                       OnClick="DownloadPdf"
-                       Title="Download PDF" />
-
-        <!-- THEME TOGGLE -->
-        <MudButton Variant="Variant.Text"
-                   Color="Color.Inherit"
-                   Style="font-size:1.5rem;min-width:40px;"
-                   OnClick="ToggleTheme">
-            @_themeEmoji
-        </MudButton>
-
-        <!-- CLEAR CACHE -->
-        <MudButton Variant="Variant.Text"
-                   Color="Color.Error"
-                   StartIcon="@Icons.Material.Filled.Delete"
-                   OnClick="ClearCache">
-        </MudButton>
-
-        <MudButton Variant="Variant.Text"
-                   Color="Color.Inherit"
-                   StartIcon="@Icons.Material.Filled.Settings"
-                   OnClick="@(() => Nav.NavigateTo("/settings"))">
-        </MudButton>
-
-        <!-- LOGIN / LOGOUT -->
-        @if (!_isLoggedIn)
-        {
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       OnClick="OpenLoginDialog">
-                Login
+                       Size="Size.Medium"
+                       OnClick="ToggleTheme">
+                @_themeEmoji
             </MudButton>
-        }
 
-        @if (_isLoggedIn)
-        {
-            <MudButton Variant="Variant.Outlined"
-                       Color="Color.Secondary"
-                       OnClick="Logout">
-                Logout
-            </MudButton>
-        }
+            <!-- CLEAR CACHE -->
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Color="Color.Error"
+                           OnClick="ClearCache"
+                           Size="Size.Medium" />
+
+            <MudIconButton Icon="@Icons.Material.Filled.Settings"
+                           Color="Color.Inherit"
+                           OnClick="@(() => Nav.NavigateTo("/settings"))"
+                           Size="Size.Medium" />
+
+            @if (!_isLoggedIn)
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="@(() => Nav.NavigateTo("/login"))">
+                    Login
+                </MudButton>
+            }
+
+            @if (_isLoggedIn)
+            {
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Secondary"
+                           OnClick="Logout">
+                    Logout
+                </MudButton>
+            }
+        </div>
 
     </MudAppBar>
 
-    <!-- LOGIN DIALOG -->
-    @if (_loginDialogOpen)
-    {
-        <MudPaper Class="pa-6 mx-auto mt-8"
-                  Style="max-width:400px;
-            position:fixed;
-            top:20vh;
-            left:0;
-            right:0;
-            z-index:1300;
-            background:white;
-            box-shadow:0 8px 32px rgba(0,0,0,0.2);">
-
-            <MudText Typo="Typo.h6">
-                Enter GitHub PAT
-            </MudText>
-
-            <MudTextField @bind-Value="_pat"
-                          Label="Personal Access Token"
-                          Variant="Variant.Outlined"
-                          InputType="InputType.Password"
-                          Class="mt-2 mb-2" />
-
-            <MudButton Variant="Variant.Filled"
-                       OnClick="Login"
-                       Disabled="string.IsNullOrWhiteSpace(_pat)">
-                Login
-            </MudButton>
-
-            <MudButton Variant="Variant.Text"
-                       OnClick="CloseLoginDialog">
-                Cancel
-            </MudButton>
-
-            @if (_loginError != null)
-            {
-                <MudText Color="Color.Error">
-                    @_loginError
-                </MudText>
-            }
-
-        </MudPaper>
-    }
-
-    <!-- MOBILE DRAWER -->
     <MudDrawer @bind-Open="_drawerOpen"
                Anchor="Anchor.Left"
                ClipMode="DrawerClipMode.Always"
@@ -319,3 +282,131 @@
     }
 }
 }
+
+<style>
+    .page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
+    }
+
+    .sidebar {
+        background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    }
+
+    .top-row {
+        background-color: #f7f7f7;
+        border-bottom: 1px solid #d6d5d5;
+        justify-content: flex-end;
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .top-row a, .top-row .btn-link {
+            white-space: nowrap;
+            margin-left: 1.5rem;
+            text-decoration: none;
+        }
+
+            .top-row a:hover, .top-row .btn-link:hover {
+                text-decoration: underline;
+            }
+
+            .top-row a:first-child {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+    @@media (max-width: 640.98px) {
+        .top-row {
+            justify-content: flex-end;
+        }
+
+            .top-row a, .top-row .btn-link {
+                margin-left: 0;
+            }
+
+        .brand-text {
+            font-size: 1.05rem !important;
+        }
+    }
+
+    .navbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @@media (max-width: 640.98px) {
+        .navbar-actions {
+            gap: 0.8rem !important;
+        }
+        .navbar-actions .mud-icon-button-root,
+        .navbar-actions .mud-button-root {
+            min-width: 0 !important;
+            padding-left: 2px !important;
+            padding-right: 2px !important;
+            height: 32px !important;
+        }
+        .navbar-actions .mud-icon-button-root svg,
+        .navbar-actions .mud-button-root .mud-icon-root {
+            font-size: 1.1rem !important;
+            min-width: 24px !important;
+            width: 24px !important;
+            height: 24px !important;
+        }
+        .brand-text {
+            font-size: 0.8rem !important;
+        }
+    }
+
+    .brand-text {
+        font-size: 1.3rem;
+        align-self: center;
+        cursor: pointer;
+        transition: font-size 0.2s;
+    }
+
+    .nav-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        flex-grow: 1;
+    }
+
+    @@media (min-width: 641px) {
+        .page {
+            flex-direction: row;
+        }
+
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        .top-row {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+            .top-row.auth  a:first-child {
+                flex: 1;
+                text-align: right;
+                width: 0;
+            }
+
+        .top-row, article {
+            padding-left: 2rem !important;
+            padding-right: 1.5rem !important;
+        }
+    }
+</style>

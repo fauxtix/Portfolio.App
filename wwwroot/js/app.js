@@ -49,6 +49,7 @@ try {
   Object.assign(CONFIG, userSettings);
 } catch {}
 
+
 /* THEME */
 function applyTheme(theme) {
   document.body.classList.toggle("dark", theme === "dark");

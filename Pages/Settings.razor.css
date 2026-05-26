@@ -1,0 +1,19 @@
+.dark-theme .mud-popover, .dark-theme .mud-select, .dark-theme .mud-select .mud-popover, .dark-theme .mud-select .mud-list, .dark-theme .mud-list, .dark-theme .mud-list-item {
+    background: #23272f !important;
+    color: #f7f7f7 !important;
+}
+
+.dark-theme .mud-popover .mud-list-item:hover,
+.dark-theme .mud-list-item:hover {
+    background: #333846 !important;
+    color: #fff !important;
+}
+
+.dark-theme .mud-select .mud-input-root {
+    background: #23272f !important;
+    color: #f7f7f7 !important;
+}
+
+.dark-theme .mud-select .mud-input-root input {
+    color: #f7f7f7 !important;
+}

@@ -1,0 +1,74 @@
+@page "/login"
+@inject Portfolio.App.Services.AppState AppState
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject NavigationManager Nav
+@inject IConfiguration Configuration
+@inject HttpClient Http
+@inject Portfolio.App.Services.ThemeService ThemeService
+
+<div class="d-flex justify-center align-center" style="min-height:80vh;">
+    <MudPaper Class=$"pa-6 mx-auto mt-8 {_themeClass}" Style="max-width:400px;">
+        <MudText Typo="Typo.h6">Enter GitHub PAT</MudText>
+        <MudTextField @bind-Value="_pat" Label="Personal Access Token" Variant="Variant.Outlined" InputType="InputType.Password" Class="mt-2 mb-2" />
+        <MudButton Variant="Variant.Filled" OnClick="OnLoginClicked" Disabled="string.IsNullOrWhiteSpace(_pat)">Login</MudButton>
+        <MudButton Variant="Variant.Text" OnClick="GoHome">Cancel</MudButton>
+        @if (_loginError != null)
+        {
+            <MudText Color="Color.Error">@_loginError</MudText>
+        }
+    </MudPaper>
+</div>
+
+@code {
+    private string _pat = string.Empty;
+    private string? _loginError;
+    private string _username = string.Empty;
+    private string _themeClass = "light-theme";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ThemeService.OnThemeChanged += OnThemeChanged;
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        var stored = await LocalStorage.GetItemAsStringAsync("github_username");
+        if (!string.IsNullOrWhiteSpace(stored))
+            _username = stored;
+        else
+            _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+    }
+
+    private async void OnThemeChanged()
+    {
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        StateHasChanged();
+    }
+
+    private async Task OnLoginClicked()
+    {
+        _loginError = null;
+        try
+        {
+            Http.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
+            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
+            var resp = await Http.GetAsync("https://api.github.com/user");
+            if (!resp.IsSuccessStatusCode)
+            {
+                _loginError = "Invalid PAT or insufficient permissions.";
+                StateHasChanged();
+                return;
+            }
+            await LocalStorage.SetItemAsStringAsync("github_pat", _pat);
+            AppState.SetLogin(_pat);
+            Nav.NavigateTo("/");
+        }
+        catch
+        {
+            _loginError = "Network or API error.";
+            StateHasChanged();
+        }
+    }
+
+    private void GoHome()
+    {
+        Nav.NavigateTo("/");
+    }
+}

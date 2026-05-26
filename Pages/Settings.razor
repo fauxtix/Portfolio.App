@@ -1,29 +1,59 @@
 @page "/settings"
 @using Blazored.LocalStorage
-@inject ILocalStorageService LocalStorage
 
-<MudPaper Class="pa-6 mx-auto mt-8" Style="max-width:400px;">
-    <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
-    <MudForm @ref="_form">
-        <MudTextField @bind-Value="_username" Label="GitHub Username" Variant="Variant.Outlined" Required="true" />
-        <MudButton Variant="Variant.Filled" OnClick="Save" Class="mt-4">Save</MudButton>
-    </MudForm>
-    @if (_saved)
-    {
-        <MudText Color="Color.Success" Class="mt-2">Saved!</MudText>
-    }
-</MudPaper>
+@inject ILocalStorageService LocalStorage
+@inject Portfolio.App.Services.ThemeService ThemeService
+@inject Portfolio.App.Services.CacheConfigService CacheConfigService
+
+<div class="settings-container d-flex justify-center align-center">
+    <MudPaper Class=$"pa-6 mx-auto mt-8 {_themeClass}" Style="max-width:400px;">
+        <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+        <MudForm @ref="_form">
+            <MudTextField @bind-Value="_username" Label="GitHub Username" Variant="Variant.Outlined" Required="true" />
+            <MudNumericField T="int"
+                             @bind-Value="_cacheDurationHours"
+                             Label="Cache Duration (hours)"
+                             Variant="Variant.Outlined"
+                             Min="1"
+                             Max="24"
+                             Step="1"
+                             Class="mt-4" />
+            <MudButton Variant="Variant.Filled" OnClick="Save" Class="mt-4">Save</MudButton>
+        </MudForm>
+        @if (_saved)
+        {
+            <MudText Color="Color.Success" Class="mt-2">Saved!</MudText>
+        }
+    </MudPaper>
+</div>
 
 @code {
+    private void OnCacheDurationChanged(int value)
+    {
+        _cacheDurationHours = value;
+    }
     private MudForm? _form;
     private string _username = "fauxtix";
     private bool _saved = false;
+    private string _themeClass = "light-theme";
+    private int _cacheDurationHours = 6;
 
     protected override async Task OnInitializedAsync()
     {
+        ThemeService.OnThemeChanged += OnThemeChanged;
+        _themeClass = ThemeService.CurrentTheme + "-theme";
         var stored = await LocalStorage.GetItemAsStringAsync("github_username");
         if (!string.IsNullOrWhiteSpace(stored))
             _username = stored;
+        var cacheDuration = await LocalStorage.GetItemAsync<int>("cache_duration_hours");
+        if (cacheDuration > 0)
+            _cacheDurationHours = cacheDuration;
+    }
+
+    private async void OnThemeChanged()
+    {
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        StateHasChanged();
     }
 
     private async Task Save()
@@ -32,6 +62,7 @@
         if (_form.IsValid)
         {
             await LocalStorage.SetItemAsStringAsync("github_username", _username);
+            await CacheConfigService.SetCacheDurationAsync(_cacheDurationHours);
             _saved = true;
             StateHasChanged();
             await Task.Delay(1500);
@@ -39,4 +70,37 @@
             StateHasChanged();
         }
     }
+
+
 }
+
+
+<style>
+    .settings-container {
+        min-height: 100vh;
+        background: var(--background);
+        overflow: hidden;
+    }
+
+
+    .dark-theme .mud-popover, .dark-theme .mud-select, .dark-theme .mud-select .mud-popover, .dark-theme .mud-select .mud-list, .dark-theme .mud-list, .dark-theme .mud-list-item {
+        background: #23272f !important;
+        color: #f7f7f7 !important;
+    }
+
+        .dark-theme .mud-popover .mud-list-item:hover,
+        .dark-theme .mud-list-item:hover {
+            background: #333846 !important;
+            color: #fff !important;
+        }
+
+        .dark-theme .mud-select .mud-input-root {
+            background: #23272f !important;
+            color: #f7f7f7 !important;
+        }
+
+            .dark-theme .mud-select .mud-input-root input {
+                color: #f7f7f7 !important;
+            }
+
+</style>
