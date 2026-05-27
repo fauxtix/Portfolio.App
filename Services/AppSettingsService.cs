@@ -3,6 +3,7 @@ using Portfolio.App.Models;
 
 namespace Portfolio.App.Services;
 
+
 public interface IAppSettingsService
 {
     event Action? OnSettingsChanged;
@@ -26,6 +27,10 @@ public class AppSettingsService : IAppSettingsService
         _localStorage = localStorage;
     }
 
+    /// <summary>
+    /// Gets the application settings from local storage. If not found, returns default settings.
+    /// </summary>
+    /// <returns></returns>
     public async Task<AppSettings> GetAsync()
     {
         if (_cache != null)
