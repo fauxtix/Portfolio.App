@@ -1,9 +1,14 @@
-﻿name: Deploy Blazor WebAssembly to GitHub Pages
+name: Deploy Blazor WebAssembly to GitHub Pages
 
 on:
   push:
     branches:
       - master
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -14,7 +19,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '10.0.x'  # Change if you target 7.0.x or 6.0.x
+          dotnet-version: '8.0.x'  # Use 8.0.x or the version you target
 
       - name: Publish Blazor WebAssembly App
         run: dotnet publish -c Release -o publish
