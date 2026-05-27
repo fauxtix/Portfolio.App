@@ -1,25 +1,49 @@
-# Portfolio.App
+<div align="center">
 
-Welcome to **Portfolio.App**, a personal portfolio web application designed to showcase your work, skills, and projects. Built to be modern, interactive, and easily customizable, this project leverages a combination of HTML, C#, JavaScript, and CSS.
+<img src="https://img.shields.io/badge/Blazor-WebAssembly-5C2D91?logo=blazor&logoColor=white&style=for-the-badge">
+<img src="https://img.shields.io/badge/UI-MudBlazor-593D7C?style=for-the-badge">
+<img src="https://img.shields.io/badge/Hosting-GitHub%20Pages-222?logo=githubpages&style=for-the-badge">
+<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge">
 
-## Features
+# 🚀 Portfolio.App
 
-- **Responsive Design:** Looks great on all devices.
-- **Project Showcase:** Display project cards with descriptions and links.
-- **Skills Section:** Highlight your technical skills and tools.
-- **Contact Form:** Allow visitors to reach out directly.
-- **Dynamic Content:** Easily update your portfolio content.
+_Elegant portfolio SPA built with Blazor WebAssembly & MudBlazor — customize and deploy effortlessly on GitHub Pages!_
 
-## Technology Stack
+</div>
 
-- **Frontend:**
-  - HTML (45.8%)
-  - CSS (6.8%)
-  - JavaScript (23.2%)
-- **Backend:**
-  - C# (24.2%)
+---
 
-## Getting Started
+## ✨ Features
+
+- 🎨 **Modern Responsive UI** with [MudBlazor](https://mudblazor.com/) and full dark/light mode toggle
+- 🔧 **Settings Page** to configure your:
+  - GitHub Username (drives repo/issue displays)
+  - Contact links and templates (email, phone, LinkedIn)
+  - Data cache duration (for API calls)
+- 🏠 **Home**: Enter GitHub username, list and explore your repositories (with private-access via PAT if needed)
+- 🗂️ **Project Gallery**: Interactive cards for each GitHub repo with rich data
+- 📬 **Contact**: Elegant form; launches your mail client with auto-filled info from settings
+- 🔖 **Issues & PRs**: View your GitHub issues and pull requests across repositories
+- ⚡ **Static & Fast**: No backend/server required, ready for GitHub Pages
+- 🌈 **Fully Themed**: Rapidly switch between dark/light for the whole app
+
+---
+
+## 🛠️ Tech Stack
+
+| Tech                      | Usage                      |
+|---------------------------|-----------------------------|
+| ![Blazor WASM](https://img.shields.io/badge/Blazor-WebAssembly-5C2D91?logo=blazor&logoColor=white) | SPA Framework |
+| ![MudBlazor](https://img.shields.io/badge/MudBlazor-593D7C?&logo=blazor) | Material-inspired UI Components |
+| ![C#](https://img.shields.io/badge/C%23-239120?logo=csharp&logoColor=white) | Main Application Logic |
+| ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white) | Markup |
+| ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white) | Styling |
+| ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black) | Interop (if needed) |
+| ![GitHub Pages](https://img.shields.io/badge/Static%20Hosting-GitHub%20Pages-222?logo=githubpages) | Deployment |
+
+---
+
+## ⚡ Getting Started
 
 1. **Clone the repository**
 
@@ -28,41 +52,58 @@ Welcome to **Portfolio.App**, a personal portfolio web application designed to s
    cd Portfolio.App
    ```
 
-2. **Install Dependencies**
-
-   > Depending on the project’s structure, install .NET dependencies and any Node/npm dependencies (if present):
+2. **Install dependencies**
 
    ```bash
    dotnet restore
-   # or for frontend assets
-   npm install
    ```
 
-3. **Run the Application**
+3. **Run locally**
 
    ```bash
    dotnet run
-   # or use your preferred method if using a different stack
    ```
+   - Access at [https://localhost:5001](https://localhost:5001) (or as indicated in console)
 
-4. **Access Locally**
+4. **Publish for GitHub Pages**
 
-   Open your browser and go to `http://localhost:5000` (or a different port if configured).
+   ```bash
+   dotnet publish -c Release -o release --nologo
+   ```
+   - See the [Blazor deployment guide](https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy/webassembly?view=aspnetcore-8.0#github-pages) for details.
 
-## Customization
+---
 
-- Edit HTML/CSS/JS files in the `wwwroot` or relevant frontend directories.
-- Update backend logic or API endpoints using C# in the `Controllers` and related folders.
-- Modify configuration as needed in `appsettings.json` or equivalent files.
+## ⚙️ Customization & Settings
 
-## Contributing
+- Open the **Settings** page (gear icon or `/settings` URL) to:
+  - Set your GitHub username, contact info, and API display options.
+  - Enable dark/light mode (applies everywhere).
+  - Save and reset settings easily — changes are instant.
+- All major site content dynamically updates based on your settings.
+- Style/enhance components via MudBlazor’s theme system (see `Pages/Settings.razor` and `Layout/`).
 
-Contributions are welcome! Please open issues or submit pull requests for improvements or bug fixes.
+---
 
-## License
+## 🤝 Contributing
 
-This project is open source; see the [LICENSE](LICENSE) file for details.
+- Fork the repository
+- Create a new branch (`git checkout -b feature/amazing`)
+- Make changes with clear, conventional commits
+- Push (`git push origin feature/amazing`)
+- Open a Pull Request!
 
-## Author
+---
 
-Developed by [fauxtix](https://github.com/fauxtix)
+## 📄 License
+
+[MIT License](LICENSE)
+
+---
+
+<div align="center">
+  <sub>
+    Built with ❤️ using <a href="https://blazor.net/">Blazor</a> & <a href="https://mudblazor.com/">MudBlazor</a> by <a href="https://github.com/fauxtix">fauxtix</a><br>
+    Easily host your portfolio on GitHub Pages!
+  </sub>
+</div>
