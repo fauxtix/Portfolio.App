@@ -28,15 +28,17 @@
 </div>
 
 @code {
-    private void OnCacheDurationChanged(int value)
-    {
-        _cacheDurationHours = value;
-    }
+
     private MudForm? _form;
     private string _username = "fauxtix";
     private bool _saved = false;
     private string _themeClass = "light-theme";
     private int _cacheDurationHours = 6;
+
+    private void OnCacheDurationChanged(int value)
+    {
+        _cacheDurationHours = value;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,8 +72,6 @@
             StateHasChanged();
         }
     }
-
-
 }
 
 

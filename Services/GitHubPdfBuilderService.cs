@@ -1,5 +1,4 @@
-﻿using Portfolio.App.Models;
-using Portfolio.App.Models.Pdf;
+﻿using Portfolio.App.Models.Pdf;
 
 namespace Portfolio.App.Services;
 

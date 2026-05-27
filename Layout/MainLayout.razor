@@ -1,12 +1,9 @@
-﻿@inherits LayoutComponentBase
-
+﻿@using Blazored.LocalStorage
+@inherits LayoutComponentBase
 
 <MudThemeProvider />
-
 <MudDialogProvider />
-
 <MudSnackbarProvider />
-
 <MudPopoverProvider />
 
 <MudLayout Class="@_themeClass">
@@ -119,8 +116,6 @@
 
     </MudDrawer>
 
-    <!-- MAIN PAGE CONTENT -->
-    <!-- FIX: padding-top prevents AppBar overlap -->
     <MudMainContent Style="padding-top:80px;" Class="@(_themeClass == "dark-theme" ? "dark-theme-bg" : "light-theme-bg")">
         <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
             @Body
@@ -131,13 +126,14 @@
 
 @code {
     [Inject] Portfolio.App.Services.ThemeService ThemeService { get; set; } = default!;
+    [Inject] HttpClient? Http { get; set; } 
     [Inject] Portfolio.App.Services.AppState AppState { get; set; } = default!;
     [Inject] IJSRuntime JS { get; set; } = default!;
     [Inject] GitHubPdfService PdfService { get; set; } = default!;
     [Inject] IDialogService DialogService { get; set; } = default!;
     [Inject] GitHubPdfBuilderService PdfBuilder { get; set; } = default!;
     [Inject] NavigationManager Nav { get; set; } = default!;
-    [Inject] Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+    [Inject] ILocalStorageService LocalStorage { get; set; } = default!;
     [Inject] IConfiguration Configuration { get; set; } = default!;
     [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
 
@@ -230,14 +226,13 @@
 
         try
         {
-            using var http = new HttpClient();
 
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
+            Http!.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
 
-            http.DefaultRequestHeaders.Authorization =
+            Http.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
 
-            var resp = await http.GetAsync("https://api.github.com/user");
+            var resp = await Http.GetAsync("https://api.github.com/user");
 
             if (!resp.IsSuccessStatusCode)
             {
