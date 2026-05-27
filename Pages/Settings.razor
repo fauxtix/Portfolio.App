@@ -1,58 +1,96 @@
 @page "/settings"
-@using Blazored.LocalStorage
+@using Portfolio.App.Models
 
-@inject ILocalStorageService LocalStorage
+@inject IAppSettingsService SettingsService
 @inject Portfolio.App.Services.ThemeService ThemeService
-@inject Portfolio.App.Services.CacheConfigService CacheConfigService
 
-<div class="settings-container d-flex justify-center align-center">
-    <MudPaper Class=$"pa-6 mx-auto mt-8 {_themeClass}" Style="max-width:400px;">
+<div class="settings-container">
+    <MudPaper Class="@($"settings-card pa-6 {_themeClass}")">
         <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+
         <MudForm @ref="_form">
-            <MudTextField @bind-Value="_username" Label="GitHub Username" Variant="Variant.Outlined" Required="true" />
+
+            <MudTextField @bind-Value="_settings.GitHubUsername"
+                          Label="GitHub Username"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_settings.ContactEmail"
+                          Label="Contact Email"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_settings.ContactPhone"
+                          Label="Phone"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_settings.ContactLinkedIn"
+                          Label="LinkedIn URL"
+                          Variant="Variant.Outlined"
+                          Class="mb-3" />
+
+            <MudTextField @bind-Value="_settings.EmailSubjectTemplate"
+                          Label="Email Subject"
+                          Variant="Variant.Outlined"
+                          Lines="2"
+                          Class="mb-3" />
+
             <MudNumericField T="int"
-                             @bind-Value="_cacheDurationHours"
+                             @bind-Value="_settings.CacheDurationHours"
                              Label="Cache Duration (hours)"
-                             Variant="Variant.Outlined"
                              Min="1"
-                             Max="24"
-                             Step="1"
-                             Class="mt-4" />
-            <MudButton Variant="Variant.Filled" OnClick="Save" Class="mt-4">Save</MudButton>
+                             Max="48"
+                             Variant="Variant.Outlined"
+                             Class="mb-4" />
+
+            <div class="settings-btn-row">
+
+                <MudButton Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           OnClick="Save">
+                    Save
+                </MudButton>
+
+                <MudButton Color="Color.Secondary"
+                           Variant="Variant.Outlined"
+                           OnClick="Reset">
+                    Reset
+                </MudButton>
+
+            </div>
+
         </MudForm>
-        @if (_saved)
+
+        @if (!string.IsNullOrWhiteSpace(_message))
         {
-            <MudText Color="Color.Success" Class="mt-2">Saved!</MudText>
+            <MudText Class="mt-3" Color="@_messageColor">
+                @_message
+            </MudText>
         }
+
     </MudPaper>
 </div>
 
 @code {
-
     private MudForm? _form;
-    private string _username = "fauxtix";
-    private bool _saved = false;
-    private string _themeClass = "light-theme";
-    private int _cacheDurationHours = 6;
 
-    private void OnCacheDurationChanged(int value)
-    {
-        _cacheDurationHours = value;
-    }
+    private AppSettings _settings = new();
+
+    private string _themeClass = "light-theme";
+
+    private string? _message;
+    private Color _messageColor = Color.Success;
 
     protected override async Task OnInitializedAsync()
     {
         ThemeService.OnThemeChanged += OnThemeChanged;
         _themeClass = ThemeService.CurrentTheme + "-theme";
-        var stored = await LocalStorage.GetItemAsStringAsync("github_username");
-        if (!string.IsNullOrWhiteSpace(stored))
-            _username = stored;
-        var cacheDuration = await LocalStorage.GetItemAsync<int>("cache_duration_hours");
-        if (cacheDuration > 0)
-            _cacheDurationHours = cacheDuration;
+
+        _settings = await SettingsService.GetAsync();
     }
 
-    private async void OnThemeChanged()
+    private void OnThemeChanged()
     {
         _themeClass = ThemeService.CurrentTheme + "-theme";
         StateHasChanged();
@@ -60,47 +98,63 @@
 
     private async Task Save()
     {
-        await _form.ValidateAsync();
-        if (_form.IsValid)
+        await _form!.Validate();
+
+        if (!_form.IsValid)
         {
-            await LocalStorage.SetItemAsStringAsync("github_username", _username);
-            await CacheConfigService.SetCacheDurationAsync(_cacheDurationHours);
-            _saved = true;
-            StateHasChanged();
-            await Task.Delay(1500);
-            _saved = false;
-            StateHasChanged();
+            _message = "Fix validation errors.";
+            _messageColor = Color.Error;
+            return;
         }
+
+        await SettingsService.SaveAsync(_settings);
+
+        _message = "Settings saved!";
+        _messageColor = Color.Success;
+
+        StateHasChanged();
+    }
+
+    private async Task Reset()
+    {
+        _settings = new AppSettings();
+        await SettingsService.SaveAsync(_settings);
+
+        _message = "Reset to defaults.";
+        _messageColor = Color.Info;
     }
 }
-
-
 <style>
+
     .settings-container {
         min-height: 100vh;
-        background: var(--background);
-        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: start;
+        margin-top: 1rem;
+        padding: 24px;
     }
 
-
-    .dark-theme .mud-popover, .dark-theme .mud-select, .dark-theme .mud-select .mud-popover, .dark-theme .mud-select .mud-list, .dark-theme .mud-list, .dark-theme .mud-list-item {
-        background: #23272f !important;
-        color: #f7f7f7 !important;
+    .page-container {
+        min-height: 100vh;
     }
 
-        .dark-theme .mud-popover .mud-list-item:hover,
-        .dark-theme .mud-list-item:hover {
-            background: #333846 !important;
-            color: #fff !important;
+    .settings-card {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 16px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .settings-btn-row {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+
+        .settings-btn-row button {
+            flex: 1;
         }
-
-        .dark-theme .mud-select .mud-input-root {
-            background: #23272f !important;
-            color: #f7f7f7 !important;
-        }
-
-            .dark-theme .mud-select .mud-input-root input {
-                color: #f7f7f7 !important;
-            }
-
 </style>

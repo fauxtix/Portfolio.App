@@ -29,5 +29,7 @@ builder.Services.AddScoped<GitHubIssuesPrsService>();
 builder.Services.AddScoped<GitHubPdfBuilderService>();
 builder.Services.AddScoped<GitHubPdfService>();
 builder.Services.AddSingleton<ThemeService>();
+builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 
 await builder.Build().RunAsync();

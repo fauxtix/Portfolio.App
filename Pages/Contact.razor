@@ -1,0 +1,125 @@
+﻿@page "/contact"
+
+@using Portfolio.App.Models
+
+@inject IContactService ContactService
+@inject ThemeService ThemeService
+@inject IAppSettingsService SettingsService
+
+<div class="contact-page @_themeClass">
+    <div class="contact-card">
+        <h1 class="contact-title">Contact</h1>
+        <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+            <div class="form-group">
+                <label>Name</label>
+                <MudTextField @bind-Value="_model.Name" Variant="Variant.Outlined" FullWidth="true" Class="contact-input" />
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <MudTextField @bind-Value="_model.Email" InputType="InputType.Email" Variant="Variant.Outlined" FullWidth="true" Class="contact-input" />
+            </div>
+            <div class="form-group">
+                <label>Message</label>
+                <MudTextField @bind-Value="_model.Message" TextArea="true" Lines="5" Variant="Variant.Outlined" FullWidth="true" Class="contact-input" />
+            </div>
+            <MudButton FullWidth="true" Variant="Variant.Filled" Class="send-button" ButtonType="ButtonType.Submit">
+                Send
+            </MudButton>
+        </EditForm>
+        <div class="contact-hint">
+            This form will open your email client.
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContactRequest _model = new();
+    private string _themeClass = "light-theme";
+
+    private AppSettings _settings = new();
+    protected override async Task OnInitializedAsync()
+    {
+        ThemeService.OnThemeChanged += OnThemeChanged;
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        _settings = await SettingsService.GetAsync();
+
+        _model.Email = _settings.ContactEmail;
+    }
+    private async Task HandleSubmit()
+    {
+        await ContactService.OpenEmailClient(_model);
+    }
+    private void OnThemeChanged()
+    {
+        _themeClass = ThemeService.CurrentTheme + "-theme";
+        InvokeAsync(StateHasChanged);
+    }
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= OnThemeChanged;
+    }
+}
+
+<style>
+    .contact-page.light-theme {
+        background: #f9f9f9;
+        color: #222;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .contact-page.dark-theme {
+        background: #181818;
+        color: #f1f1f1;
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .contact-card {
+        background: var(--card-bg, #fff);
+        color: inherit;
+        max-width: 420px;
+        margin: 2rem auto;
+        border-radius: 16px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        padding: 2rem 2.5rem 1.5rem 2.5rem;
+        transition: background 0.3s;
+    }
+
+    .dark-theme .contact-card {
+        background: #232323;
+    }
+
+    .contact-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .contact-input {
+        margin-top: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .send-button {
+        margin-top: 1.2rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+    }
+
+    .contact-hint {
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        color: #888;
+        text-align: center;
+    }
+
+    .dark-theme .contact-hint {
+        color: #aaa;
+    }
+</style>

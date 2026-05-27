@@ -1,4 +1,7 @@
 @page "/login"
+
+@using Microsoft.AspNetCore.Components.Web
+
 @inject Portfolio.App.Services.AppState AppState
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject NavigationManager Nav
@@ -6,69 +9,424 @@
 @inject HttpClient Http
 @inject Portfolio.App.Services.ThemeService ThemeService
 
-<div class="d-flex justify-center align-center" style="min-height:80vh;">
-    <MudPaper Class=$"pa-6 mx-auto mt-8 {_themeClass}" Style="max-width:400px;">
-        <MudText Typo="Typo.h6">Enter GitHub PAT</MudText>
-        <MudTextField @bind-Value="_pat" Label="Personal Access Token" Variant="Variant.Outlined" InputType="InputType.Password" Class="mt-2 mb-2" />
-        <MudButton Variant="Variant.Filled" OnClick="OnLoginClicked" Disabled="string.IsNullOrWhiteSpace(_pat)">Login</MudButton>
-        <MudButton Variant="Variant.Text" OnClick="GoHome">Cancel</MudButton>
+<div class="login-page @_themeClass">
+
+    <div class="login-card">
+
+        <img src="/images/MyPhoto.jpg"
+             alt="Profile"
+             class="profile-image" />
+
+        <h1 class="login-title">
+            GitHub Insights
+        </h1>
+
+        <div class="login-subtitle">
+            Sign in to continue
+        </div>
+
+        <div class="input-label">
+            Personal Access Token
+        </div>
+
+        <MudTextField @bind-Value="_pat"
+                      Placeholder="GitHub Token"
+                      Variant="Variant.Outlined"
+                      InputType="InputType.Password"
+                      FullWidth="true"
+                      Immediate="true"
+                      Class="login-input"
+                      OnKeyDown="HandleKeyDown"
+                      InputAttributes="@(new Dictionary<string, object>
+                                    {
+                                        { "autocomplete", "off" }
+                                    })" />
+
+        <MudButton FullWidth="true"
+                   Variant="Variant.Filled"
+                   Class="login-button"
+                   Disabled="_loading || string.IsNullOrWhiteSpace(_pat)"
+                   OnClick="@OnLoginClicked">
+
+            @if (_loading)
+            {
+                <MudProgressCircular Indeterminate="true"
+                                     Size="Size.Small"
+                                     Class="me-2 spinner-white" />
+            }
+
+            <span>Login</span>
+
+        </MudButton>
+
+        <div class="settings-text">
+            Generate a token at
+            <a href="https://github.com/settings/tokens"
+               target="_blank">
+                GitHub Settings
+            </a>
+            with repo scope.
+        </div>
+
         @if (_loginError != null)
         {
-            <MudText Color="Color.Error">@_loginError</MudText>
+            <div class="error-text">
+                @_loginError
+            </div>
         }
-    </MudPaper>
+
+    </div>
+
 </div>
 
 @code {
+
     private string _pat = string.Empty;
     private string? _loginError;
     private string _username = string.Empty;
     private string _themeClass = "light-theme";
+    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
         ThemeService.OnThemeChanged += OnThemeChanged;
+
         _themeClass = ThemeService.CurrentTheme + "-theme";
+
         var stored = await LocalStorage.GetItemAsStringAsync("github_username");
+
         if (!string.IsNullOrWhiteSpace(stored))
             _username = stored;
         else
             _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
+
+        _pat = string.Empty;
     }
 
-    private async void OnThemeChanged()
+    private void OnThemeChanged()
     {
         _themeClass = ThemeService.CurrentTheme + "-theme";
-        StateHasChanged();
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" &&
+            !_loading &&
+            !string.IsNullOrWhiteSpace(_pat))
+        {
+            await OnLoginClicked();
+        }
     }
 
     private async Task OnLoginClicked()
     {
         _loginError = null;
+        _loading = true;
+
         try
         {
-            Http.DefaultRequestHeaders.UserAgent.ParseAdd("PortfolioApp");
-            Http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("token", _pat);
-            var resp = await Http.GetAsync("https://api.github.com/user");
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                "https://api.github.com/user");
+
+            request.Headers.UserAgent.ParseAdd("PortfolioApp");
+
+            request.Headers.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "token",
+                    _pat);
+
+            var resp = await Http.SendAsync(request);
+
             if (!resp.IsSuccessStatusCode)
             {
                 _loginError = "Invalid PAT or insufficient permissions.";
                 StateHasChanged();
                 return;
             }
-            await LocalStorage.SetItemAsStringAsync("github_pat", _pat);
+
+            //
+            // NOTE:
+            // For production/public apps:
+            // consider encrypted/session storage or OAuth flow
+            //
+
+            await LocalStorage.SetItemAsStringAsync(
+                "github_pat",
+                _pat);
+
             AppState.SetLogin(_pat);
+
             Nav.NavigateTo("/");
         }
         catch
         {
             _loginError = "Network or API error.";
-            StateHasChanged();
+        }
+        finally
+        {
+            _loading = false;
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 
-    private void GoHome()
+    public void Dispose()
     {
-        Nav.NavigateTo("/");
+        ThemeService.OnThemeChanged -= OnThemeChanged;
     }
 }
+
+<style>
+
+    /* =========================================
+           PAGE
+           ========================================= */
+
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 8vh;
+        /* padding: 24px; */
+        transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    /* =========================================
+           DARK THEME
+           ========================================= */
+
+    .dark-theme {
+        --bg: radial-gradient( circle at top, #1b2233 0%, #0f1117 45%);
+        --card-bg: #151922;
+        --text-main: #ffffff;
+        --text-secondary: #c6ccd8;
+        --input-bg: #11151d;
+        --input-border: rgba(255,255,255,0.08);
+        --link: #79a8ff;
+        --shadow: rgba(0,0,0,0.45);
+    }
+
+    /* =========================================
+           LIGHT THEME
+           ========================================= */
+
+    .light-theme {
+        --bg: linear-gradient( 180deg, #f8fbff 0%, #eef2f7 100%);
+        --card-bg: #ffffff;
+        --text-main: #101828;
+        --text-secondary: #667085;
+        --input-bg: #f9fafb;
+        --input-border: rgba(16,24,40,0.08);
+        --link: #2563eb;
+        --shadow: rgba(16,24,40,0.12);
+    }
+
+    .login-page {
+        background: var(--bg);
+    }
+
+    /* =========================================
+           CARD
+           ========================================= */
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--card-bg);
+        border-radius: 28px;
+        padding: 42px 34px;
+        text-align: center;
+        box-shadow: 0 10px 40px var(--shadow), 0 0 0 1px var(--input-border);
+        transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+        animation: fadeUp 0.35s ease;
+    }
+
+        .login-card:hover {
+            transform: translateY(-2px);
+        }
+
+    @@keyframes fadeUp {
+
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* =========================================
+           PROFILE IMAGE
+           ========================================= */
+
+    .profile-image {
+        width: 84px;
+        height: 84px;
+        border-radius: 22px;
+        object-fit: cover;
+        margin-bottom: 24px;
+        border: 2px solid var(--input-border);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+    }
+
+    /* =========================================
+           TYPOGRAPHY
+           ========================================= */
+
+    .login-title {
+        color: var(--text-main);
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        letter-spacing: -1px;
+    }
+
+    .login-subtitle {
+        color: var(--text-main);
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 34px;
+    }
+
+    .input-label {
+        color: var(--text-main);
+        text-align: left;
+        margin-bottom: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* =========================================
+           INPUT
+           ========================================= */
+
+    .login-input {
+        margin-bottom: 26px;
+    }
+
+        .login-input .mud-input-control {
+            width: 100%;
+        }
+
+        .login-input .mud-input-slot {
+            background: var(--input-bg);
+            border-radius: 14px;
+            transition: background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .login-input input {
+            color: var(--text-main) !important;
+            font-size: 1rem !important;
+            padding: 14px !important;
+        }
+
+        .login-input .mud-input-label {
+            color: var(--text-secondary) !important;
+        }
+
+        .login-input .mud-input-outlined-border {
+            border-color: var(--input-border) !important;
+        }
+
+        .login-input .mud-input-slot:hover .mud-input-outlined-border {
+            border-color: #5ea0ff !important;
+        }
+
+    /* =========================================
+           BUTTON
+           ========================================= */
+
+    .login-button {
+        height: 54px;
+        border-radius: 14px !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        text-transform: none !important;
+        background: linear-gradient( 90deg, #5b5ce6 0%, #5ea0ff 100% ) !important;
+        color: white !important;
+        box-shadow: 0 8px 20px rgba(94,160,255,0.25);
+        transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+        .login-button:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .login-button:disabled {
+            opacity: 0.7;
+        }
+
+    /* =========================================
+           SPINNER
+           ========================================= */
+
+    .spinner-white {
+        color: white !important;
+    }
+
+    /* =========================================
+           FOOTER TEXT
+           ========================================= */
+
+    .settings-text {
+        margin-top: 24px;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+        .settings-text a {
+            color: var(--link);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+            .settings-text a:hover {
+                text-decoration: underline;
+            }
+
+    /* =========================================
+           ERROR
+           ========================================= */
+
+    .error-text {
+        margin-top: 18px;
+        color: #ff6b6b;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* =========================================
+           MOBILE
+           ========================================= */
+
+    @@media (max-width: 480px) {
+
+        .login-card {
+            padding: 32px 22px;
+            border-radius: 22px;
+        }
+
+        .login-title {
+            font-size: 1.9rem;
+        }
+
+        .login-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .profile-image {
+            width: 72px;
+            height: 72px;
+        }
+    }
+
+</style>

@@ -1,6 +1,10 @@
 ﻿@using Blazored.LocalStorage
 @inherits LayoutComponentBase
 
+@inject IAppSettingsService SettingsService
+@inject IContactService ContactService
+
+
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -35,6 +39,12 @@
                        Style="font-size:1.1rem;"
                        OnClick="@(() => Nav.NavigateTo("/issues-prs"))">
                 <span style="font-size:1.3rem;vertical-align:middle;">🔀</span> <span class="ml-1">PRs & Issues</span>
+            </MudButton>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Inherit"
+                       Style="font-size:1.1rem;"
+                       OnClick="@(() => Nav.NavigateTo("/contact"))">
+                <span style="font-size:1.3rem;vertical-align:middle;">✉️</span> <span class="ml-1">Contact</span>
             </MudButton>
         </div>
 
@@ -107,9 +117,9 @@
 
 
 
-            <MudNavLink Href="/settings"
+            <MudNavLink Href="/contact"
                         Icon="@Icons.Material.Filled.Settings">
-                Settings
+                Contact
             </MudNavLink>
 
         </MudNavMenu>
@@ -136,6 +146,8 @@
     [Inject] ILocalStorageService LocalStorage { get; set; } = default!;
     [Inject] IConfiguration Configuration { get; set; } = default!;
     [Parameter] public EventCallback<bool> OnLoginStateChanged { get; set; }
+
+    private bool _initialized;
 
     private string _themeClass = "light-theme";
 
@@ -166,7 +178,18 @@
             _username = stored;
         else
             _username = Configuration["GitHub:DefaultUsername"] ?? "fauxtix";
-        await base.OnInitializedAsync();
+
+        if (_initialized)
+            return;
+
+        _initialized = true;
+
+        await SettingsService.GetAsync();
+
+        if (ContactService is ContactService cs)
+        {
+            await cs.InitializeAsync();
+        }
     }
 
     private void ToggleDrawer()
