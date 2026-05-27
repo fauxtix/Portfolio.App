@@ -5,8 +5,12 @@
 @inject Portfolio.App.Services.ThemeService ThemeService
 
 <div class="settings-container">
+
     <MudPaper Class="@($"settings-card pa-6 {_themeClass}")">
-        <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+
+        <MudText Typo="Typo.h5" Class="mb-4">
+            Settings
+        </MudText>
 
         <MudForm @ref="_form">
 
@@ -34,8 +38,7 @@
                           Label="Email Subject"
                           Variant="Variant.Outlined"
                           Lines="2"
-                          Class="mb-3" />
-
+                          Class="mb-3 email-subject-field" />
             <MudNumericField T="int"
                              @bind-Value="_settings.CacheDurationHours"
                              Label="Cache Duration (hours)"
@@ -70,9 +73,11 @@
         }
 
     </MudPaper>
+
 </div>
 
 @code {
+
     private MudForm? _form;
 
     private AppSettings _settings = new();
@@ -80,11 +85,13 @@
     private string _themeClass = "light-theme";
 
     private string? _message;
+
     private Color _messageColor = Color.Success;
 
     protected override async Task OnInitializedAsync()
     {
         ThemeService.OnThemeChanged += OnThemeChanged;
+
         _themeClass = ThemeService.CurrentTheme + "-theme";
 
         _settings = await SettingsService.GetAsync();
@@ -123,6 +130,11 @@
         _message = "Reset to defaults.";
         _messageColor = Color.Info;
     }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= OnThemeChanged;
+    }
 }
 <style>
 
@@ -133,10 +145,6 @@
         align-items: start;
         margin-top: 1rem;
         padding: 24px;
-    }
-
-    .page-container {
-        min-height: 100vh;
     }
 
     .settings-card {
@@ -157,4 +165,13 @@
         .settings-btn-row button {
             flex: 1;
         }
+
+    .subject-preview {
+        border-radius: 12px;
+        background: rgba(128, 128, 128, 0.08);
+    }
+
+    .dark-theme .email-subject-field textarea {
+        color: #fff !important;
+    }
 </style>

@@ -1,4 +1,5 @@
 ﻿@using Blazored.LocalStorage
+@using MudBlazor
 @inherits LayoutComponentBase
 
 @inject IAppSettingsService SettingsService
@@ -12,7 +13,7 @@
 
 <MudLayout Class="@_themeClass">
 
-    <!-- TOP NAVBAR -->
+        <!-- TOP NAVBAR -->
     <MudAppBar Elevation="1" Fixed="true">
 
         <!-- Hamburger (mobile only) -->
@@ -208,6 +209,7 @@
     {
         await ThemeService.ToggleThemeAsync();
     }
+
 
     private async Task ClearCache()
     {
