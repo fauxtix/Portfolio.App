@@ -1,0 +1,20 @@
+/* /Pages/Settings.razor.rz.scp.css */
+.dark-theme .mud-popover[b-j09tx6thq4], .dark-theme .mud-select[b-j09tx6thq4], .dark-theme .mud-select .mud-popover[b-j09tx6thq4], .dark-theme .mud-select .mud-list[b-j09tx6thq4], .dark-theme .mud-list[b-j09tx6thq4], .dark-theme .mud-list-item[b-j09tx6thq4] {
+    background: #23272f !important;
+    color: #f7f7f7 !important;
+}
+
+.dark-theme .mud-popover .mud-list-item:hover[b-j09tx6thq4],
+.dark-theme .mud-list-item:hover[b-j09tx6thq4] {
+    background: #333846 !important;
+    color: #fff !important;
+}
+
+.dark-theme .mud-select .mud-input-root[b-j09tx6thq4] {
+    background: #23272f !important;
+    color: #f7f7f7 !important;
+}
+
+.dark-theme .mud-select .mud-input-root input[b-j09tx6thq4] {
+    color: #f7f7f7 !important;
+}
