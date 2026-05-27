@@ -15,7 +15,7 @@ _Elegant portfolio SPA built with Blazor WebAssembly & MudBlazor — customize a
 
 ## ✨ Features
 
-- 🎨 **Modern Responsive UI** with [MudBlazor](https://mudblazor.com/) and full dark/light mode toggle
+- 🎨 **Responsive UI** with [MudBlazor](https://mudblazor.com/) and full dark/light mode toggle
 - 🔧 **Settings Page** to configure your:
   - GitHub Username (drives repo/issue displays)
   - Contact links and templates (email, phone, LinkedIn)
