@@ -25,4 +25,11 @@
     <Folder Include="Shared\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include=".github\workflows\gh-pages.yml" />
+  </ItemGroup>
+
+	<Target Name="ReplaceIndexOnPublish" AfterTargets="Publish">
+		<Copy SourceFiles="wwwroot/index.production.html" DestinationFiles="$(PublishDir)wwwroot/index.html" />
+	</Target>
 </Project>
